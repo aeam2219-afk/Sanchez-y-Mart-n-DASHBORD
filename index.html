@@ -4,13 +4,14 @@
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Sánchez y Martín — Dashboard Amazon 2026</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Segoe UI',Arial,sans-serif;background:#F0F2F5;color:#222;min-height:100vh}
 .topbar{background:#232F3E;padding:12px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.3)}
-.logo-t{color:#FF9900;font-size:15px;font-weight:700}.logo-s{color:#aaa;font-size:10px;margin-top:2px}.last{color:#aaa;font-size:10px}
+.logo-t{color:#FF9900;font-size:15px;font-weight:700}.logo-s{color:#aaa;font-size:10px;margin-top:2px}
 .nav{background:#1a2535;padding:0 24px;display:flex;gap:0;overflow-x:auto;border-bottom:1px solid #111}
-.ntab{padding:11px 18px;font-size:12px;color:#aaa;cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap;background:none;border-top:none;border-left:none;border-right:none;font-family:inherit;transition:.15s}
+.ntab{padding:11px 18px;font-size:12px;color:#aaa;cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap;background:none;border-top:none;border-left:none;border-right:none;font-family:inherit}
 .ntab:hover{color:#FF9900}.ntab.on{color:#FF9900;border-bottom-color:#FF9900;font-weight:600}
 .content{padding:18px 24px;max-width:1440px;margin:0 auto}
 .sp{display:none}.sp.on{display:block}
@@ -33,7 +34,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#F0F2F5;color:#222;min-h
 .brow{display:flex;align-items:center;gap:8px;margin-bottom:6px}
 .bn{width:46px;font-size:11px;font-weight:600}
 .bwrap{flex:1;height:7px;background:#f0f0f0;border-radius:4px;overflow:hidden}
-.bfill{height:7px;border-radius:4px}.bval{width:120px;text-align:right;font-size:11px;color:#666}
+.bfill{height:7px;border-radius:4px}.bval{width:130px;text-align:right;font-size:11px;color:#666}
 .leg{display:flex;gap:12px;margin-bottom:8px;font-size:10px;color:#888;flex-wrap:wrap}
 .leg span{display:flex;align-items:center;gap:3px}.ld{width:9px;height:9px;border-radius:2px;display:inline-block}
 .sec{font-size:10px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.06em;margin:16px 0 10px}
@@ -45,10 +46,10 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#F0F2F5;color:#222;min-h
 .btab.on.b3{background:#D85A30;color:#fff;border-color:#D85A30}
 .mes-bar{display:flex;gap:5px;align-items:center;background:#fff;border-radius:8px;padding:10px 16px;border:1px solid #e8e8e8;margin-bottom:12px;flex-wrap:wrap}
 .mes-bar label{font-size:11px;color:#666;font-weight:600;margin-right:4px}
-.mtab{padding:5px 14px;font-size:11px;border-radius:20px;border:1px solid #ddd;background:#f5f5f5;color:#666;cursor:pointer;transition:.15s}
-.mtab:hover{border-color:#aaa;color:#333}.mtab.on{background:#232F3E;color:#FF9900;border-color:#232F3E;font-weight:600}
+.mtab{padding:5px 14px;font-size:11px;border-radius:20px;border:1px solid #ddd;background:#f5f5f5;color:#666;cursor:pointer}
+.mtab:hover{border-color:#aaa}.mtab.on{background:#232F3E;color:#FF9900;border-color:#232F3E;font-weight:600}
 .tbl{width:100%;border-collapse:collapse;font-size:10px}
-.tbl th{background:#232F3E;color:#fff;font-weight:600;padding:8px;text-align:right;white-space:nowrap;border-bottom:2px solid #FF9900;position:sticky;top:0;cursor:pointer}
+.tbl th{background:#232F3E;color:#fff;font-weight:600;padding:8px;text-align:right;white-space:nowrap;border-bottom:2px solid #FF9900;position:sticky;top:0}
 .tbl th:first-child,.tbl th:nth-child(2),.tbl th:nth-child(3){text-align:left}
 .tbl td{padding:6px 8px;text-align:right;border-bottom:1px solid #f5f5f5;color:#222;white-space:nowrap}
 .tbl td:first-child,.tbl td:nth-child(2),.tbl td:nth-child(3){text-align:left}
@@ -63,71 +64,43 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#F0F2F5;color:#222;min-h
 .frow select,.frow input{font-size:11px;padding:5px 9px;border-radius:6px;border:1px solid #ddd;background:#fff}
 .frow input{width:200px}
 .btn{font-size:11px;padding:5px 12px;border-radius:6px;border:1px solid #ddd;background:#f5f5f5;cursor:pointer}
-.btn:hover{background:#e8e8e8}
+.spinner{display:inline-block;width:14px;height:14px;border:2px solid #FF990044;border-top:2px solid #FF9900;border-radius:50%;animation:spin 1s linear infinite;margin-right:6px;vertical-align:middle}
+@keyframes spin{to{transform:rotate(360deg)}}
+.refresh-btn{background:none;border:1px solid #FF9900;color:#FF9900;padding:5px 12px;border-radius:6px;cursor:pointer;font-size:11px;font-family:inherit;font-weight:600}
+.refresh-btn:hover{background:#FF990022}
+.status-bar{display:flex;align-items:center;gap:8px;font-size:10px;color:#aaa}
 @media(max-width:900px){.krow6,.krow4{grid-template-columns:repeat(2,1fr)}.krow3,.g2,.g3{grid-template-columns:1fr}.nav{gap:0}}
 </style>
 </head>
 <body>
-<div class="topbar">
-  <div><div class="logo-t">Sánchez y Martín — Amazon Dashboard 2026</div>
-  <div class="logo-s">bold3 · lirio · util · Ene–Jun 2026</div></div>
-  <div class="last">Jun 15, 2026</div>
-</div>
-<div class="nav">
-  <button class="ntab on" onclick="go('general',this)">General</button>
-  <button class="ntab" onclick="go('marcas',this)">Por marca</button>
-  <button class="ntab" onclick="go('semanal',this)">Semanal</button>
-  <button class="ntab" onclick="go('mensual',this)">Mensual</button>
-  <button class="ntab" onclick="go('ads',this)">Ads</button>
-  <button class="ntab" onclick="go('asins',this)">ASINs</button>
-  <button class="ntab" onclick="go('datos',this)">Base de datos</button>
-</div>
-<div class="content">
 
-<!-- GENERAL -->
+<div class="topbar">
+  <div>
+    <div class="logo-t">Sánchez y Martín — Amazon Dashboard 2026</div>
+    <div class="logo-s">bold3 · lirio · util · Ene–Jun 2026</div>
+  </div>
+  <div class="status-bar">
+    <span id="status-txt">Cargando...</span>
+    <button class="refresh-btn" onclick="initDashboard()">↻ Actualizar</button>
+  </div>
+</div>
+
+<div class="nav">
+  <button class="ntab on"  onclick="go('general',this)">General</button>
+  <button class="ntab"     onclick="go('marcas',this)">Por marca</button>
+  <button class="ntab"     onclick="go('semanal',this)">Semanal</button>
+  <button class="ntab"     onclick="go('mensual',this)">Mensual</button>
+  <button class="ntab"     onclick="go('ads',this)">Ads</button>
+  <button class="ntab"     onclick="go('asins',this)">ASINs</button>
+  <button class="ntab"     onclick="go('datos',this)">Base de datos</button>
+</div>
+
+<div class="content">
 <div id="p-general" class="sp on">
-  <div class="krow6">
-    <div class="kcard"><div class="kl">Ingresos totales 2026</div><div class="kv">$2,676,857 MXN</div><div class="kd">Ene–Jun 2026</div></div>
-    <div class="kcard"><div class="kl">Gasto en Ads</div><div class="kv">$5,130 MXN</div><div class="kd">ROAS: 8.3x</div></div>
-    <div class="kcard"><div class="kl">ACOS campañas</div><div class="kv good">12.0%</div><div class="kd">388 compras atribuidas</div></div>
-    <div class="kcard"><div class="kl">Ventas atribuidas Ads</div><div class="kv">$42,576 MXN</div><div class="kd">918,636 impresiones</div></div>
-    <div class="kcard"><div class="kl">Stock bold3</div><div class="kv">574,265</div><div class="kd">uds en Amazon</div></div>
-    <div class="kcard"><div class="kl">Stock lirio</div><div class="kv">406,379</div><div class="kd">uds en Amazon</div></div>
-  </div>
-  <div class="sec">share del grupo — Ene a Jun 2026</div>
-  <div class="card">
-    <div class="ct">Participación por marca — ingresos totales</div>
-    <div class="sbar">
-      <div class="seg" style="width:53.1%;background:#185FA5">bold3 53.1%</div>
-      <div class="seg" style="width:46.7%;background:#1D9E75">lirio 46.7%</div>
-      <div class="seg" style="width:2%;background:#D85A30">util 0.2%</div>
-    </div>
-    <div class="brow"><span class="bn" style="color:#185FA5">bold3</span><div class="bwrap"><div class="bfill" style="width:100%;background:#185FA5"></div></div><span class="bval">53.1% · $1,421,923 MXN</span></div>
-    <div class="brow"><span class="bn" style="color:#1D9E75">lirio</span><div class="bwrap"><div class="bfill" style="width:88%;background:#1D9E75"></div></div><span class="bval">46.7% · $1,249,652 MXN</span></div>
-    <div class="brow"><span class="bn" style="color:#D85A30">util</span><div class="bwrap"><div class="bfill" style="width:1%;background:#D85A30"></div></div><span class="bval">0.2% · $5,281 MXN</span></div>
-  </div>
-  <div class="krow3">
-    <div class="bkcard"><div class="bktop"><span class="bdot" style="background:#185FA5"></span><span class="bname">bold3</span><span class="bshare" style="color:#185FA5">53.1%</span></div>
-      <div class="km"><span class="kml">Ingresos totales</span><span class="kmv">$1,421,923 MXN</span></div>
-      <div class="km"><span class="kml">Stock en Amazon</span><span class="kmv">574,265 uds</span></div>
-      <div class="km"><span class="kml">ROAS Ads</span><span class="kmv good">8.3x</span></div>
-      <div class="km"><span class="kml">ACOS Ads</span><span class="kmv good">12.0%</span></div>
-      <div class="km"><span class="kml">Compras Ads</span><span class="kmv">388</span></div>
-    </div>
-    <div class="bkcard"><div class="bktop"><span class="bdot" style="background:#1D9E75"></span><span class="bname">lirio</span><span class="bshare" style="color:#1D9E75">46.7%</span></div>
-      <div class="km"><span class="kml">Ingresos totales</span><span class="kmv">$1,249,652 MXN</span></div>
-      <div class="km"><span class="kml">Stock en Amazon</span><span class="kmv">406,379 uds</span></div>
-      <div class="km"><span class="kml">Ventas Ads atrib.</span><span class="kmv">$42,576 MXN</span></div>
-      <div class="km"><span class="kml">Clics Ads</span><span class="kmv">2,582</span></div>
-      <div class="km"><span class="kml">Impresiones</span><span class="kmv">918,636</span></div>
-    </div>
-    <div class="bkcard"><div class="bktop"><span class="bdot" style="background:#D85A30"></span><span class="bname">util</span><span class="bshare" style="color:#D85A30">0.2%</span></div>
-      <div class="km"><span class="kml">Ingresos totales</span><span class="kmv">$5,281 MXN</span></div>
-      <div class="km"><span class="kml">Stock en Amazon</span><span class="kmv bad">3 uds</span></div>
-      <div class="km"><span class="kml">Estado</span><span class="kmv bad">⚠ Muy baja actividad</span></div>
-      <div class="km"><span class="kml">Acción</span><span class="kmv warn">Revisar estrategia</span></div>
-    </div>
-  </div>
+  <div class="krow6" id="gen-kpis"><div class="kcard" style="grid-column:1/-1;text-align:center;padding:30px"><span class="spinner"></span>Conectando con Google Sheets...</div></div>
+  <div class="sec">share del grupo</div>
+  <div class="card"><div class="ct">Participación por marca</div><div class="sbar" id="gen-sbar"></div><div id="gen-brows"></div></div>
+  <div class="krow3" id="gen-bcards"></div>
   <div class="g2">
     <div class="card"><div class="ct">Ingresos mensuales por marca (MXN)</div>
       <div class="leg"><span><span class="ld" style="background:#185FA5"></span>bold3</span><span><span class="ld" style="background:#1D9E75"></span>lirio</span><span><span class="ld" style="background:#D85A30"></span>util</span></div>
@@ -140,23 +113,20 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#F0F2F5;color:#222;min-h
   </div>
 </div>
 
-<!-- POR MARCA -->
 <div id="p-marcas" class="sp">
   <div class="btabs">
     <button class="btab b1 on" id="bt-bold3" onclick="selBrand('bold3')">bold3</button>
     <button class="btab b2" id="bt-lirio" onclick="selBrand('lirio')">lirio</button>
-    <button class="btab b3" id="bt-util" onclick="selBrand('util')">util</button>
+    <button class="btab b3" id="bt-util"  onclick="selBrand('util')">util</button>
   </div>
   <div id="brand-content"></div>
 </div>
 
-<!-- SEMANAL -->
 <div id="p-semanal" class="sp">
-  <div class="mes-bar"><label>Mes:</label><button class="mtab on" onclick="selMes('Ene 2026',this)">Ene</button><button class="mtab" onclick="selMes('Feb 2026',this)">Feb</button><button class="mtab" onclick="selMes('Mar 2026',this)">Mar</button><button class="mtab" onclick="selMes('Abr 2026',this)">Abr</button><button class="mtab" onclick="selMes('May 2026',this)">May</button><button class="mtab" onclick="selMes('Jun 2026',this)">Jun</button></div>
+  <div class="mes-bar"><label>Mes:</label><div id="sem-btns"></div></div>
   <div class="krow3" id="sem-kpis"></div>
-  <div class="card"><div class="ct">Share de ventas — <span id="sem-mes-lbl" style="color:#FF9900"></span></div>
-    <div class="sbar" id="sem-sbar"></div><div id="sem-brows"></div>
-  </div>
+  <div class="card"><div class="ct">Share — <span id="sem-mes-lbl" style="color:#FF9900"></span></div>
+    <div class="sbar" id="sem-sbar"></div><div id="sem-brows"></div></div>
   <div class="g2">
     <div class="card"><div class="ct">Ventas por semana (MXN) — <span id="lbl-sv" style="color:#888;font-weight:400"></span></div>
       <div class="leg"><span><span class="ld" style="background:#185FA5"></span>bold3</span><span><span class="ld" style="background:#1D9E75"></span>lirio</span><span><span class="ld" style="background:#D85A30"></span>util</span></div>
@@ -177,25 +147,24 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#F0F2F5;color:#222;min-h
   </div>
   <div class="card"><div class="ct">Tabla semanal — <span id="lbl-tbl" style="color:#888;font-weight:400"></span></div>
     <div style="overflow-x:auto"><table class="tbl">
-      <thead><tr><th style="text-align:left">Semana</th><th>Ventas bold3</th><th>Ventas lirio</th><th>Ventas util</th><th>Total</th><th>Share bold3</th><th>Share lirio</th><th>Stock bold3</th><th>Stock lirio</th></tr></thead>
+      <thead><tr><th style="text-align:left">Semana</th><th>bold3</th><th>lirio</th><th>util</th><th>Total</th><th>Share bold3</th><th>Share lirio</th><th>Stock bold3</th><th>Stock lirio</th></tr></thead>
       <tbody id="sem-tbody"></tbody>
     </table></div>
   </div>
 </div>
 
-<!-- MENSUAL -->
 <div id="p-mensual" class="sp">
   <div class="mes-bar"><label>Ver mes:</label>
     <button class="mtab on" id="mm-all" onclick="selMesM('all',this)">Todos</button>
-    <button class="mtab" id="mm-0" onclick="selMesM('Ene 2026',this)">Ene</button><button class="mtab" id="mm-1" onclick="selMesM('Feb 2026',this)">Feb</button><button class="mtab" id="mm-2" onclick="selMesM('Mar 2026',this)">Mar</button><button class="mtab" id="mm-3" onclick="selMesM('Abr 2026',this)">Abr</button><button class="mtab" id="mm-4" onclick="selMesM('May 2026',this)">May</button><button class="mtab" id="mm-5" onclick="selMesM('Jun 2026',this)">Jun</button>
+    <div id="men-btns"></div>
   </div>
   <div class="krow4" id="men-kpis"></div>
   <div class="g2">
-    <div class="card"><div class="ct" id="men-ct-v">Ingresos por mes — comparativa marcas</div>
+    <div class="card"><div class="ct" id="men-ct-v">Ingresos por mes</div>
       <div class="leg"><span><span class="ld" style="background:#185FA5"></span>bold3</span><span><span class="ld" style="background:#1D9E75"></span>lirio</span><span><span class="ld" style="background:#D85A30"></span>util</span></div>
       <div style="position:relative;height:200px"><canvas id="men_v"></canvas></div>
     </div>
-    <div class="card"><div class="ct" id="men-ct-sh">Share mensual — evolución (%)</div>
+    <div class="card"><div class="ct" id="men-ct-sh">Share mensual (%)</div>
       <div class="leg"><span><span class="ld" style="background:#185FA5"></span>bold3</span><span><span class="ld" style="background:#1D9E75"></span>lirio</span><span><span class="ld" style="background:#D85A30"></span>util</span></div>
       <div style="position:relative;height:200px"><canvas id="men_sh"></canvas></div>
     </div>
@@ -212,118 +181,50 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#F0F2F5;color:#222;min-h
   </div>
 </div>
 
-<!-- ADS -->
 <div id="p-ads" class="sp">
-  <div class="krow4">
-    <div class="kcard"><div class="kl">Gasto en Ads</div><div class="kv">$5,130 MXN</div><div class="kd">7 campañas</div></div>
-    <div class="kcard"><div class="kl">Ventas atribuidas Ads</div><div class="kv">$42,576 MXN</div><div class="kd">14 días de atribución</div></div>
-    <div class="kcard"><div class="kl">ACOS global</div><div class="kv good">12.0%</div><div class="kd">muy eficiente ✓</div></div>
-    <div class="kcard"><div class="kl">ROAS global</div><div class="kv good">8.3x</div><div class="kd">388 compras · 2,582 clics</div></div>
-  </div>
-  <div class="krow3">
-    <div class="kcard"><div class="kl">Impresiones totales</div><div class="kv">918,636</div><div class="kd">todas las campañas</div></div>
-    <div class="kcard"><div class="kl">Clics totales</div><div class="kv">2,582</div><div class="kd">CTR: 0.28%</div></div>
-    <div class="kcard"><div class="kl">Compras atribuidas</div><div class="kv">388</div><div class="kd">14 días de atribución</div></div>
-  </div>
-  <div class="card">
-    <div class="ct">Detalle por campaña</div>
+  <div class="krow4" id="ads-kpis"></div>
+  <div class="krow3" id="ads-kpis2"></div>
+  <div class="card"><div class="ct">Detalle por campaña</div>
     <div style="overflow-x:auto"><table class="tbl">
-      <thead><tr>
-        <th style="text-align:left;min-width:200px">Campaña (fechas)</th>
-        <th>Impresiones</th><th>Clics</th>
-        <th>Gasto MXN</th><th>Ventas MXN</th><th>Compras</th><th>ACOS</th><th>ROAS</th>
-      </tr></thead>
-      <tbody><tr>
-<td style="font-weight:600">2026-05-18 → 2026-06-02</td>
-<td>119,602</td><td>468</td>
-<td>$1,332.76</td><td>$5,294.70</td><td>34</td>
-<td class="warn">25.2%</td>
-<td class="warn">3.97x</td>
-</tr><tr>
-<td style="font-weight:600">2026-05-11 → 2026-06-02</td>
-<td>134,181</td><td>551</td>
-<td>$1,162.94</td><td>$2,255.15</td><td>11</td>
-<td class="bad">51.6%</td>
-<td class="bad">1.94x</td>
-</tr><tr>
-<td style="font-weight:600">2026-03-19 → 2026-03-23</td>
-<td>23,792</td><td>167</td>
-<td>$814.25</td><td>$4,082.63</td><td>34</td>
-<td class="warn">19.9%</td>
-<td class="warn">5.01x</td>
-</tr><tr>
-<td style="font-weight:600">2026-05-11 → 2026-06-02</td>
-<td>397,135</td><td>424</td>
-<td>$799.95</td><td>$136.04</td><td>2</td>
-<td class="bad">588.0%</td>
-<td class="bad">0.17x</td>
-</tr><tr>
-<td style="font-weight:600">2026-03-26 → 2026-03-30</td>
-<td>203,535</td><td>568</td>
-<td>$494.45</td><td>$22,909.53</td><td>185</td>
-<td class="good">2.2%</td>
-<td class="good">46.33x</td>
-</tr><tr>
-<td style="font-weight:600">2026-03-27 → 2026-03-30</td>
-<td>11,398</td><td>174</td>
-<td>$352.64</td><td>$3,946.07</td><td>51</td>
-<td class="good">8.9%</td>
-<td class="good">11.19x</td>
-</tr><tr>
-<td style="font-weight:600">2026-05-29 → 2026-06-02</td>
-<td>28,993</td><td>230</td>
-<td>$173.07</td><td>$3,951.91</td><td>71</td>
-<td class="good">4.4%</td>
-<td class="good">22.83x</td>
-</tr></tbody>
-      <tfoot><tr class="tot">
-        <td>TOTAL</td><td>918,636</td><td>2,582</td>
-        <td>$5,130.06</td><td>$42,576.03</td><td>388</td>
-        <td class="good">12.0%</td><td class="good">8.3x</td>
-      </tr></tfoot>
+      <thead><tr><th style="text-align:left;min-width:180px">Campaña</th><th>Impresiones</th><th>Clics</th><th>Gasto MXN</th><th>Ventas MXN</th><th>Compras</th><th>ACOS</th><th>ROAS</th></tr></thead>
+      <tbody id="ads-tbody"></tbody>
     </table></div>
   </div>
   <div class="g2">
-    <div class="card"><div class="ct">Gasto vs Ventas por campaña (MXN)</div><div style="position:relative;height:220px"><canvas id="ads_bar"></canvas></div></div>
+    <div class="card"><div class="ct">Gasto vs Ventas por campaña</div><div style="position:relative;height:220px"><canvas id="ads_bar"></canvas></div></div>
     <div class="card"><div class="ct">ROAS por campaña</div><div style="position:relative;height:220px"><canvas id="ads_roas"></canvas></div></div>
   </div>
 </div>
 
-<!-- ASINs -->
 <div id="p-asins" class="sp">
   <div class="frow">
     <label>Marca:</label>
     <select id="asinM" onchange="renderAsins()"><option value="all">Todas</option><option value="bold3">bold3</option><option value="lirio">lirio</option><option value="util">util</option></select>
     <label>Ordenar:</label>
-    <select id="asinS" onchange="renderAsins()"><option value="ingresos">Ingresos</option><option value="uds">Unidades</option><option value="share">Share</option><option value="devol">Devoluciones</option></select>
+    <select id="asinS" onchange="renderAsins()"><option value="ingresos">Ingresos</option><option value="uds">Unidades</option><option value="share">Share</option></select>
   </div>
-  <div class="card">
-    <div class="ct">Detalle por ASIN — Ene a Jun 2026 | <span id="asinCnt" style="color:#888;font-weight:400"></span></div>
+  <div class="card"><div class="ct">Detalle por ASIN — <span id="asinCnt" style="color:#888;font-weight:400"></span></div>
     <div style="overflow-x:auto"><table class="tbl" style="table-layout:auto">
       <thead><tr>
         <th style="text-align:left;min-width:220px">Producto / ASIN</th>
-        <th>Marca</th><th>Ingresos MXN</th><th>Share</th>
-        <th>Ventas netas</th><th>Unidades</th><th>Devol.</th>
+        <th>Marca</th><th>Ingresos MXN</th><th>Share</th><th>Ventas netas</th><th>Unidades</th><th>Devol.</th>
       </tr></thead>
       <tbody id="asinBody"></tbody>
     </table></div>
   </div>
   <div class="g2">
-    <div class="card"><div class="ct">Share de ingresos — Top 10 ASINs</div><div style="position:relative;height:250px"><canvas id="asin_d"></canvas></div></div>
-    <div class="card"><div class="ct">Top 10 ASINs por ingresos (MXN)</div><div style="position:relative;height:250px"><canvas id="asin_bar"></canvas></div></div>
+    <div class="card"><div class="ct">Share — Top 10 ASINs</div><div style="position:relative;height:250px"><canvas id="asin_d"></canvas></div></div>
+    <div class="card"><div class="ct">Top 10 por ingresos</div><div style="position:relative;height:250px"><canvas id="asin_bar"></canvas></div></div>
   </div>
 </div>
 
-<!-- BASE DE DATOS -->
 <div id="p-datos" class="sp">
   <div class="krow4" id="db_kpis"></div>
   <div class="frow">
-    <label>Buscar:</label>
-    <input type="text" id="dbSearch" placeholder="producto, ASIN, marca..." oninput="dbFiltrar()">
+    <label>Buscar:</label><input type="text" id="dbSearch" placeholder="producto, ASIN, marca..." oninput="dbFiltrar()">
     <label>Marca:</label>
     <select id="dbMarca" onchange="dbFiltrar()"><option value="all">Todas</option><option value="bold3">bold3</option><option value="lirio">lirio</option><option value="util">util</option></select>
-    <label>Periodo:</label>
-    <select id="dbPer" onchange="dbFiltrar()"><option value="all">Todos</option><option value="Ene 2026">Ene 2026</option><option value="Feb 2026">Feb 2026</option><option value="Mar 2026">Mar 2026</option><option value="Abr 2026">Abr 2026</option><option value="May 2026">May 2026</option><option value="Jun 2026">Jun 2026</option></select>
+    <label>Periodo:</label><select id="dbPer" onchange="dbFiltrar()"><option value="all">Todos</option></select>
     <button class="btn" onclick="dbLimpiar()">✕ Limpiar</button>
     <button class="btn" onclick="exportCSV()">⬇ CSV</button>
   </div>
@@ -334,9 +235,9 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#F0F2F5;color:#222;min-h
         <th style="text-align:left;min-width:200px" onclick="dbSort('nombre')">Producto ↕</th>
         <th style="text-align:left" onclick="dbSort('marca')">Marca ↕</th>
         <th style="text-align:left" onclick="dbSort('periodo')">Periodo ↕</th>
-        <th onclick="dbSort('ingresos')">Ingresos MXN ↕</th>
-        <th onclick="dbSort('uds')">Unidades ↕</th>
-        <th onclick="dbSort('ventas_netas')">Ventas netas ↕</th>
+        <th onclick="dbSort('ingresos')">Ingresos ↕</th>
+        <th onclick="dbSort('uds')">Uds ↕</th>
+        <th onclick="dbSort('ventas_netas')">V. netas ↕</th>
         <th onclick="dbSort('devol')">Devol. ↕</th>
         <th onclick="dbSort('share')">Share ↕</th>
       </tr></thead>
@@ -347,22 +248,400 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#F0F2F5;color:#222;min-h
 </div>
 
 <script>
-const D={"periodos": ["Ene 2026", "Feb 2026", "Mar 2026", "Abr 2026", "May 2026", "Jun 2026"], "ventas": {"bold3": [461649.2, 289106.66, 320113.97, 225549.84, 99680.04, 25823.66], "lirio": [184313.94, 187102.46, 278226.95, 207902.57, 330437.6, 61668.82], "util": [5194.77, 57.72, 28.86, 0.0, 0.0, 0.0]}, "uds": {"bold3": [7162, 3980, 4137, 3579, 1343, 188], "lirio": [3658, 3524, 5822, 4210, 6306, 1896], "util": [58, 2, 1, 0, 0, 0]}, "stock": {"bold3": [5497, 8467, 7051, 4374, 25469, 574265], "lirio": [13624, 14989, 10770, 7657, 31761, 406379], "util": [3, 0, 0, 0, 0, 0]}, "devol": {"bold3": [36, 18, 18, 49, 19, 3], "lirio": [15, 20, 37, 30, 16, 17], "util": [9, 0, 0, 0, 0, 0]}, "sh_b3": [70.9, 60.7, 53.5, 52.0, 23.2, 29.5], "sh_lr": [28.3, 39.3, 46.5, 48.0, 76.8, 70.5], "sh_ut": [0.8, 0.0, 0.0, 0.0, 0.0, 0.0], "totales": {"grand": 2676857.06, "bold3": 1421923.37, "lirio": 1249652.34, "util": 5281.35, "share_b3": 53.1, "share_lr": 46.7, "share_ut": 0.2, "stock_b3": 574265, "stock_lr": 406379, "stock_ut": 3}, "ads_total": {"gasto": 5130.06, "ventas": 42576.03, "acos": 12.0, "roas": 8.3, "clics": 2582, "impresiones": 918636, "compras": 388}, "ads_camp": [{"nombre": "2026-05-18 → 2026-06-02", "gasto": 1332.76, "ventas": 5294.7, "clics": 468, "impresiones": 119602, "compras": 34, "roas": 3.97, "acos": 25.2}, {"nombre": "2026-05-11 → 2026-06-02", "gasto": 1162.94, "ventas": 2255.15, "clics": 551, "impresiones": 134181, "compras": 11, "roas": 1.94, "acos": 51.6}, {"nombre": "2026-03-19 → 2026-03-23", "gasto": 814.25, "ventas": 4082.63, "clics": 167, "impresiones": 23792, "compras": 34, "roas": 5.01, "acos": 19.9}, {"nombre": "2026-05-11 → 2026-06-02", "gasto": 799.95, "ventas": 136.04, "clics": 424, "impresiones": 397135, "compras": 2, "roas": 0.17, "acos": 588.0}, {"nombre": "2026-03-26 → 2026-03-30", "gasto": 494.45, "ventas": 22909.53, "clics": 568, "impresiones": 203535, "compras": 185, "roas": 46.33, "acos": 2.2}, {"nombre": "2026-03-27 → 2026-03-30", "gasto": 352.64, "ventas": 3946.07, "clics": 174, "impresiones": 11398, "compras": 51, "roas": 11.19, "acos": 8.9}, {"nombre": "2026-05-29 → 2026-06-02", "gasto": 173.07, "ventas": 3951.91, "clics": 230, "impresiones": 28993, "compras": 71, "roas": 22.83, "acos": 4.4}], "asins": [{"asin": "B0B7SK34RD", "nombre": "BOLD 3 Suavizante Flores de primavera 3L ROSA", "marca": "bold3", "ingresos": 435256.04, "uds": 7072, "share": 16.3, "ventas_netas": 392814.05, "devol": 59}, {"asin": "B0FB3R8BWB", "nombre": "Jabón de Tocador Lirio Dermatológico 14 piezas de 150 g c/u", "marca": "lirio", "ingresos": 340092.98, "uds": 1678, "share": 12.7, "ventas_netas": 312907.74, "devol": 15}, {"asin": "B07BKPS4BQ", "nombre": "Lirio Bath&Spa Avena 150g 4 Piezas", "marca": "lirio", "ingresos": 273958.65, "uds": 5057, "share": 10.2, "ventas_netas": 252659.73, "devol": 17}, {"asin": "B09SM3DLCQ", "nombre": "Bold 3 Cariñitos de Mama 4.23L", "marca": "bold3", "ingresos": 244211.08, "uds": 2400, "share": 9.1, "ventas_netas": 224321.22, "devol": 10}, {"asin": "B0FB3RS54J", "nombre": "Detergente líquido Bold 3 quitamanchas para ropa 4.23 L", "marca": "bold3", "ingresos": 239274.49, "uds": 2083, "share": 8.9, "ventas_netas": 216749.16, "devol": 13}, {"asin": "B09SM4V5BN", "nombre": "Detergente líquido Bold 3 Aromas de Primavera 4.23L", "marca": "bold3", "ingresos": 139661.73, "uds": 1339, "share": 5.2, "ventas_netas": 125529.13, "devol": 7}, {"asin": "B0FB3S6152", "nombre": "Detergente en polvo Bold 3 Cariñitos de Mamá Bolsa 4.5 Kg", "marca": "bold3", "ingresos": 133658.02, "uds": 1067, "share": 5.0, "ventas_netas": 121652.77, "devol": 8}, {"asin": "B0B7SP2HJ5", "nombre": "Suavizante Bold 3 Suave Frescura Azul 3L", "marca": "bold3", "ingresos": 131828.1, "uds": 2169, "share": 4.9, "ventas_netas": 119559.17, "devol": 15}, {"asin": "B0FB3VDHV7", "nombre": "Lirio S.G Neutro Liquido 400 mL", "marca": "lirio", "ingresos": 127015.72, "uds": 3159, "share": 4.7, "ventas_netas": 117751.16, "devol": 17}, {"asin": "B0FB3TMPFP", "nombre": "Jabón líquido de manos Lirio Clean & Pure Granada 1 Lt", "marca": "lirio", "ingresos": 121425.77, "uds": 2716, "share": 4.5, "ventas_netas": 112392.69, "devol": 30}, {"asin": "B004X2LF4Q", "nombre": "Jabón en barra Lirio Lavandería Amarillo para eliminar manchas profundas 400g", "marca": "lirio", "ingresos": 105552.98, "uds": 6759, "share": 3.9, "ventas_netas": 95382.47, "devol": 38}, {"asin": "B0B7SMHM1X", "nombre": "Jabón en barra Lirio Bath & Spa Coco 150g 4 Piezas", "marca": "lirio", "ingresos": 105119.35, "uds": 1882, "share": 3.9, "ventas_netas": 97179.41, "devol": 7}, {"asin": "B09SM5HVDR", "nombre": "Detergente en polvo Bold 3 Cariñitos de Mamá Bolsa 800g", "marca": "bold3", "ingresos": 98033.91, "uds": 4259, "share": 3.7, "ventas_netas": 88031.66, "devol": 31}, {"asin": "B0B7SSLN1V", "nombre": "Jabón en barra Lirio Bath & Spa Frutos del Bosque 150g 4 Piezas", "marca": "lirio", "ingresos": 57532.08, "uds": 1053, "share": 2.1, "ventas_netas": 53313.18, "devol": 0}, {"asin": "B0FB3SHX9K", "nombre": "Jabón líquido de manos Lirio Clean & Pure Coco 1Lt", "marca": "lirio", "ingresos": 38258.75, "uds": 739, "share": 1.4, "ventas_netas": 35914.5, "devol": 3}, {"asin": "B0FB3TLDXW", "nombre": "Jabón Liquido Corporal Lirio Shower Gel Avena y Miel 400ml", "marca": "lirio", "ingresos": 36003.65, "uds": 921, "share": 1.3, "ventas_netas": 32746.39, "devol": 3}, {"asin": "B076XT7NRD", "nombre": "Jabón Líquido de Manos Lirio Clean & Pure Coco 500ml", "marca": "lirio", "ingresos": 23321.33, "uds": 731, "share": 0.9, "ventas_netas": 19797.88, "devol": 4}, {"asin": "B09SM3GGCG", "nombre": "Jabón Líquido de manos Lirio Clean & Pure Granada 500ml", "marca": "lirio", "ingresos": 21371.08, "uds": 721, "share": 0.8, "ventas_netas": 18819.89, "devol": 1}, {"asin": "B0FB3S8Q9W", "nombre": "Detergente en polvo Util Multiusos Ultra Aroma 5 kg", "marca": "util", "ingresos": 4300.11, "uds": 27, "share": 0.2, "ventas_netas": 4114.89, "devol": 0}, {"asin": "B09SM4X34Q", "nombre": "Detergente en Polvo Util Multiusos 900g", "marca": "util", "ingresos": 981.24, "uds": 34, "share": 0.0, "ventas_netas": 846.63, "devol": 9}], "db_rows": [{"nombre": "BOLD3 — Ene 2026", "asin": "—", "marca": "bold3", "periodo": "Ene 2026", "ingresos": 461649.2, "uds": 7162, "ventas_netas": 417904.68, "devol": 36, "share": 17.2}, {"nombre": "LIRIO — Ene 2026", "asin": "—", "marca": "lirio", "periodo": "Ene 2026", "ingresos": 184313.94, "uds": 3658, "ventas_netas": 171134.58, "devol": 15, "share": 6.9}, {"nombre": "UTIL — Ene 2026", "asin": "—", "marca": "util", "periodo": "Ene 2026", "ingresos": 5194.77, "uds": 58, "ventas_netas": 4879.29, "devol": 9, "share": 0.2}, {"nombre": "BOLD3 — Feb 2026", "asin": "—", "marca": "bold3", "periodo": "Feb 2026", "ingresos": 289106.66, "uds": 3980, "ventas_netas": 262777.88, "devol": 18, "share": 10.8}, {"nombre": "LIRIO — Feb 2026", "asin": "—", "marca": "lirio", "periodo": "Feb 2026", "ingresos": 187102.46, "uds": 3524, "ventas_netas": 173661.8, "devol": 20, "share": 7.0}, {"nombre": "UTIL — Feb 2026", "asin": "—", "marca": "util", "periodo": "Feb 2026", "ingresos": 57.72, "uds": 2, "ventas_netas": 54.82, "devol": 0, "share": 0.0}, {"nombre": "BOLD3 — Mar 2026", "asin": "—", "marca": "bold3", "periodo": "Mar 2026", "ingresos": 320113.97, "uds": 4137, "ventas_netas": 291718.82, "devol": 18, "share": 12.0}, {"nombre": "LIRIO — Mar 2026", "asin": "—", "marca": "lirio", "periodo": "Mar 2026", "ingresos": 278226.95, "uds": 5822, "ventas_netas": 256273.17, "devol": 37, "share": 10.4}, {"nombre": "UTIL — Mar 2026", "asin": "—", "marca": "util", "periodo": "Mar 2026", "ingresos": 28.86, "uds": 1, "ventas_netas": 27.41, "devol": 0, "share": 0.0}, {"nombre": "BOLD3 — Abr 2026", "asin": "—", "marca": "bold3", "periodo": "Abr 2026", "ingresos": 225549.84, "uds": 3579, "ventas_netas": 204304.73, "devol": 49, "share": 8.4}, {"nombre": "LIRIO — Abr 2026", "asin": "—", "marca": "lirio", "periodo": "Abr 2026", "ingresos": 207902.57, "uds": 4210, "ventas_netas": 193573.58, "devol": 30, "share": 7.8}, {"nombre": "BOLD3 — May 2026", "asin": "—", "marca": "bold3", "periodo": "May 2026", "ingresos": 99680.04, "uds": 1343, "ventas_netas": 88563.38, "devol": 19, "share": 3.7}, {"nombre": "LIRIO — May 2026", "asin": "—", "marca": "lirio", "periodo": "May 2026", "ingresos": 330437.6, "uds": 6306, "ventas_netas": 299061.5, "devol": 16, "share": 12.3}, {"nombre": "BOLD3 — Jun 2026", "asin": "—", "marca": "bold3", "periodo": "Jun 2026", "ingresos": 25823.66, "uds": 188, "ventas_netas": 23387.67, "devol": 3, "share": 1.0}, {"nombre": "LIRIO — Jun 2026", "asin": "—", "marca": "lirio", "periodo": "Jun 2026", "ingresos": 61668.82, "uds": 1896, "ventas_netas": 55160.41, "devol": 17, "share": 2.3}, {"nombre": "BOLD 3 Suavizante Flores de primavera 3L ROSA", "asin": "B0B7SK34RD", "marca": "bold3", "periodo": "Ene–Jun 2026", "ingresos": 435256.04, "uds": 7072, "ventas_netas": 392814.05, "devol": 59, "share": 16.3}, {"nombre": "Jabón de Tocador Lirio Dermatológico 14 piezas de 150 g c/u", "asin": "B0FB3R8BWB", "marca": "lirio", "periodo": "Ene–Jun 2026", "ingresos": 340092.98, "uds": 1678, "ventas_netas": 312907.74, "devol": 15, "share": 12.7}, {"nombre": "Lirio Bath&Spa Avena 150g 4 Piezas", "asin": "B07BKPS4BQ", "marca": "lirio", "periodo": "Ene–Jun 2026", "ingresos": 273958.65, "uds": 5057, "ventas_netas": 252659.73, "devol": 17, "share": 10.2}, {"nombre": "Bold 3 Cariñitos de Mama 4.23L", "asin": "B09SM3DLCQ", "marca": "bold3", "periodo": "Ene–Jun 2026", "ingresos": 244211.08, "uds": 2400, "ventas_netas": 224321.22, "devol": 10, "share": 9.1}, {"nombre": "Detergente líquido Bold 3 quitamanchas para ropa 4.23 L", "asin": "B0FB3RS54J", "marca": "bold3", "periodo": "Ene–Jun 2026", "ingresos": 239274.49, "uds": 2083, "ventas_netas": 216749.16, "devol": 13, "share": 8.9}, {"nombre": "Detergente líquido Bold 3 Aromas de Primavera 4.23L", "asin": "B09SM4V5BN", "marca": "bold3", "periodo": "Ene–Jun 2026", "ingresos": 139661.73, "uds": 1339, "ventas_netas": 125529.13, "devol": 7, "share": 5.2}, {"nombre": "Detergente en polvo Bold 3 Cariñitos de Mamá Bolsa 4.5 Kg", "asin": "B0FB3S6152", "marca": "bold3", "periodo": "Ene–Jun 2026", "ingresos": 133658.02, "uds": 1067, "ventas_netas": 121652.77, "devol": 8, "share": 5.0}, {"nombre": "Suavizante Bold 3 Suave Frescura Azul 3L", "asin": "B0B7SP2HJ5", "marca": "bold3", "periodo": "Ene–Jun 2026", "ingresos": 131828.1, "uds": 2169, "ventas_netas": 119559.17, "devol": 15, "share": 4.9}, {"nombre": "Lirio S.G Neutro Liquido 400 mL", "asin": "B0FB3VDHV7", "marca": "lirio", "periodo": "Ene–Jun 2026", "ingresos": 127015.72, "uds": 3159, "ventas_netas": 117751.16, "devol": 17, "share": 4.7}, {"nombre": "Jabón líquido de manos Lirio Clean & Pure Granada 1 Lt", "asin": "B0FB3TMPFP", "marca": "lirio", "periodo": "Ene–Jun 2026", "ingresos": 121425.77, "uds": 2716, "ventas_netas": 112392.69, "devol": 30, "share": 4.5}, {"nombre": "Jabón en barra Lirio Lavandería Amarillo para eliminar manchas profundas 400g", "asin": "B004X2LF4Q", "marca": "lirio", "periodo": "Ene–Jun 2026", "ingresos": 105552.98, "uds": 6759, "ventas_netas": 95382.47, "devol": 38, "share": 3.9}, {"nombre": "Jabón en barra Lirio Bath & Spa Coco 150g 4 Piezas", "asin": "B0B7SMHM1X", "marca": "lirio", "periodo": "Ene–Jun 2026", "ingresos": 105119.35, "uds": 1882, "ventas_netas": 97179.41, "devol": 7, "share": 3.9}, {"nombre": "Detergente en polvo Bold 3 Cariñitos de Mamá Bolsa 800g", "asin": "B09SM5HVDR", "marca": "bold3", "periodo": "Ene–Jun 2026", "ingresos": 98033.91, "uds": 4259, "ventas_netas": 88031.66, "devol": 31, "share": 3.7}, {"nombre": "Jabón en barra Lirio Bath & Spa Frutos del Bosque 150g 4 Piezas", "asin": "B0B7SSLN1V", "marca": "lirio", "periodo": "Ene–Jun 2026", "ingresos": 57532.08, "uds": 1053, "ventas_netas": 53313.18, "devol": 0, "share": 2.1}, {"nombre": "Jabón líquido de manos Lirio Clean & Pure Coco 1Lt", "asin": "B0FB3SHX9K", "marca": "lirio", "periodo": "Ene–Jun 2026", "ingresos": 38258.75, "uds": 739, "ventas_netas": 35914.5, "devol": 3, "share": 1.4}, {"nombre": "Jabón Liquido Corporal Lirio Shower Gel Avena y Miel 400ml", "asin": "B0FB3TLDXW", "marca": "lirio", "periodo": "Ene–Jun 2026", "ingresos": 36003.65, "uds": 921, "ventas_netas": 32746.39, "devol": 3, "share": 1.3}, {"nombre": "Jabón Líquido de Manos Lirio Clean & Pure Coco 500ml", "asin": "B076XT7NRD", "marca": "lirio", "periodo": "Ene–Jun 2026", "ingresos": 23321.33, "uds": 731, "ventas_netas": 19797.88, "devol": 4, "share": 0.9}, {"nombre": "Jabón Líquido de manos Lirio Clean & Pure Granada 500ml", "asin": "B09SM3GGCG", "marca": "lirio", "periodo": "Ene–Jun 2026", "ingresos": 21371.08, "uds": 721, "ventas_netas": 18819.89, "devol": 1, "share": 0.8}, {"nombre": "Detergente en polvo Util Multiusos Ultra Aroma 5 kg", "asin": "B0FB3S8Q9W", "marca": "util", "periodo": "Ene–Jun 2026", "ingresos": 4300.11, "uds": 27, "ventas_netas": 4114.89, "devol": 0, "share": 0.2}, {"nombre": "Detergente en Polvo Util Multiusos 900g", "asin": "B09SM4X34Q", "marca": "util", "periodo": "Ene–Jun 2026", "ingresos": 981.24, "uds": 34, "ventas_netas": 846.63, "devol": 9, "share": 0.0}], "ventas_sem": {"Ene 2026": {"semanas": ["01 Jan"], "bold3_ing": [461649.2], "lirio_ing": [184313.94], "util_ing": [5194.77], "bold3_uds": [7162], "lirio_uds": [3658]}, "Feb 2026": {"semanas": ["01 Feb"], "bold3_ing": [289106.66], "lirio_ing": [187102.46], "util_ing": [57.72], "bold3_uds": [3980], "lirio_uds": [3524]}, "Mar 2026": {"semanas": ["01 Mar"], "bold3_ing": [320113.97], "lirio_ing": [278226.95], "util_ing": [28.86], "bold3_uds": [4137], "lirio_uds": [5822]}, "Abr 2026": {"semanas": ["01 Apr"], "bold3_ing": [225549.84], "lirio_ing": [207902.57], "util_ing": [0.0], "bold3_uds": [3579], "lirio_uds": [4210]}, "May 2026": {"semanas": ["1 - 3 mayo", "4- 10 mayo", "11 - 17 mayo", "18 - 24 mayo", "25 - 31 mayo"], "bold3_ing": [18413.38, 32408.91, 22382.19, 13805.01, 12670.55], "lirio_ing": [23062.11, 56605.83, 64521.07, 66001.82, 120246.77], "util_ing": [0, 0.0, 0.0, 0.0, 0.0], "bold3_uds": [286, 537, 272, 139, 109], "lirio_uds": [509, 877, 881, 1194, 2845]}, "Jun 2026": {"semanas": ["1 - 7 Junio", "8 - 14 Junio"], "bold3_ing": [9994.59, 15829.07], "lirio_ing": [30794.97, 30873.85], "util_ing": [0.0, 0.0], "bold3_uds": [70, 118], "lirio_uds": [699, 1197]}}, "stock_sem": {"Ene 2026": {"semanas": ["01 Jan"], "bold3": [5497], "lirio": [13624], "util": [3]}, "Feb 2026": {"semanas": ["01 Feb"], "bold3": [8467], "lirio": [14989], "util": [0]}, "Mar 2026": {"semanas": ["01 Mar"], "bold3": [7051], "lirio": [10770], "util": [0]}, "Abr 2026": {"semanas": ["01 Apr"], "bold3": [4374], "lirio": [7657], "util": [0]}, "May 2026": {"semanas": ["1 - 3 mayo", "4- 10 mayo", "11 - 17 mayo", "18 - 24 mayo", "25 - 31 mayo"], "bold3": [5592, 5806, 5569, 5406, 3096], "lirio": [7350, 8002, 7227, 6026, 3156], "util": [0, 0, 0, 0, 0]}, "Jun 2026": {"semanas": ["1 - 7 Junio", "8 - 14 junio"], "bold3": [253301, 320963], "lirio": [131995, 274383], "util": [0, 0]}}, "meses_sem": ["Ene 2026", "Feb 2026", "Mar 2026", "Abr 2026", "May 2026", "Jun 2026"]};
+// ═══════════════════════════════════════════
+// CONFIG — Solo cambia estos 3 links cuando
+// actualices las hojas en Google Sheets
+// ═══════════════════════════════════════════
+const SHEET_METRICAS = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSXMwGP17wFPG5G26MCkZmOYCatXf0RWr5nsTSiQ3p9xSSQgPCE8fVv7sDNCd7M8w/pub?gid=810112894&single=true&output=csv';
+const SHEET_STOCK    = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSXMwGP17wFPG5G26MCkZmOYCatXf0RWr5nsTSiQ3p9xSSQgPCE8fVv7sDNCd7M8w/pub?gid=1053783013&single=true&output=csv';
+const SHEET_ADS      = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSXMwGP17wFPG5G26MCkZmOYCatXf0RWr5nsTSiQ3p9xSSQgPCE8fVv7sDNCd7M8w/pub?gid=832854475&single=true&output=csv';
+
+// ═══════════════════════════════════════════
+// GLOBALS
+// ═══════════════════════════════════════════
 const C={bold3:'#185FA5',lirio:'#1D9E75',util:'#D85A30'};
 const PM={bold3:'pb1',lirio:'pb2',util:'pb3'};
+const MARCAS=['bold3','lirio','util'];
 const gc='rgba(0,0,0,0.06)';
 const bo={responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}}};
-let charts={};
-let inited={general:false,marcas:false,semanal:false,mensual:false,ads:false,asins:false,datos:false};
-let activeSemMes=D.meses_sem[0]||'';
+let charts={}, D=null, inited={}, activeSemMes='', dbFiltered=[], dbSC='ingresos', dbSD=-1;
 
+function mxn(n){return'$'+Math.round(n||0).toLocaleString('es-MX');}
 function kill(ids){ids.forEach(id=>{if(charts[id]){charts[id].destroy();delete charts[id];}});}
 function sc(cb){return{x:{grid:{display:false},ticks:{font:{size:9},autoSkip:false,maxRotation:30}},y:{grid:{color:gc},ticks:{font:{size:9},callback:cb}}};}
 function mkB(col,data,stack){const d={data,backgroundColor:col+'DD',borderRadius:3};if(stack)d.stack=stack;return d;}
 function mkL(col,data){return{data,borderColor:col,tension:.4,pointRadius:3,borderWidth:2};}
-function mxn(n){return'$'+Math.round(n).toLocaleString('es-MX');}
 function lgnd(){return{legend:{display:true,labels:{font:{size:9},boxWidth:10}}};}
+function num(s){return parseFloat(String(s||'').replace(/[$,%x,]/g,'').trim())||0;}
 
+function normMarca(s){
+  if(!s)return'';
+  const v=String(s).trim().toLowerCase();
+  if(v.includes('bold'))return'bold3';
+  if(v.includes('lirio'))return'lirio';
+  if(v.includes('util'))return'util';
+  return'';
+}
+
+function fechaMes(f){
+  if(!f||String(f).trim()==='')return'';
+  const d=new Date(f);
+  if(!isNaN(d.getTime())){
+    const ms=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+    return ms[d.getMonth()]+' '+d.getFullYear();
+  }
+  const s=String(f).toLowerCase();
+  if(s.includes('ene')||s.includes('jan'))return'Ene 2026';
+  if(s.includes('feb'))return'Feb 2026';
+  if(s.includes('mar'))return'Mar 2026';
+  if(s.includes('abr')||s.includes('apr'))return'Abr 2026';
+  if(s.includes('mayo')||s.includes('may'))return'May 2026';
+  if(s.includes('jun'))return'Jun 2026';
+  return String(f).trim();
+}
+
+function fechaSem(f){
+  if(!f)return'?';
+  const d=new Date(f);
+  if(!isNaN(d.getTime()))return d.toLocaleDateString('es-MX',{day:'2-digit',month:'short'});
+  return String(f).trim();
+}
+
+// ═══════════════════════════════════════════
+// FETCH CSV usando PapaParse (maneja CORS)
+// ═══════════════════════════════════════════
+async function fetchCSV(url){
+  const bustUrl = url + (url.includes('?') ? '&' : '?') + '_cb=' + Date.now();
+  try{
+    const res = await fetch(bustUrl, {cache:'no-store'});
+    if(!res.ok) throw new Error('HTTP '+res.status);
+    const text = await res.text();
+    if(!text || text.trim().length < 5) throw new Error('Respuesta vacía');
+    return await parseCSVText(text);
+  }catch(directErr){
+    // Fallback: try via public CORS proxy if direct fetch is blocked
+    try{
+      const proxyUrl = 'https://corsproxy.io/?url=' + encodeURIComponent(bustUrl);
+      const res2 = await fetch(proxyUrl, {cache:'no-store'});
+      if(!res2.ok) throw new Error('HTTP '+res2.status+' (proxy)');
+      const text2 = await res2.text();
+      if(!text2 || text2.trim().length < 5) throw new Error('Respuesta vacía (proxy)');
+      return await parseCSVText(text2);
+    }catch(proxyErr){
+      throw new Error('Directo: '+directErr.message+' | Proxy: '+proxyErr.message);
+    }
+  }
+}
+
+function parseCSVText(text){
+  return new Promise((resolve,reject)=>{
+    Papa.parse(text,{
+      header:true,
+      skipEmptyLines:true,
+      complete:(r)=>resolve(r),
+      error:(e)=>reject(e),
+    });
+  });
+}
+
+// ═══════════════════════════════════════════
+// MAIN LOAD
+// ═══════════════════════════════════════════
+async function initDashboard(){
+  document.getElementById('status-txt').innerHTML='<span class="spinner"></span>Cargando...';
+
+  try{
+    const [rM,rS,rA]=await Promise.all([
+      fetchCSV(SHEET_METRICAS),
+      fetchCSV(SHEET_STOCK),
+      fetchCSV(SHEET_ADS),
+    ]);
+
+    processData(rM.data, rS.data, rA.data);
+    buildUI();
+    inited={};
+    go('general',document.querySelector('.ntab'));
+    document.getElementById('status-txt').textContent='✓ Actualizado: '+new Date().toLocaleTimeString('es-MX');
+
+  }catch(e){
+    console.error(e);
+    document.getElementById('status-txt').textContent='⚠ Error al cargar — intenta de nuevo';
+    document.getElementById('gen-kpis').innerHTML=`
+      <div class="kcard" style="grid-column:1/-1;background:#FFF3CD;border-color:#FFE69C;color:#856404;padding:20px">
+        <strong>No se pudieron cargar los datos de Google Sheets.</strong><br><br>
+        Verifica que las 3 hojas estén publicadas en:<br>
+        Google Sheets → Archivo → Compartir → Publicar en la web → CSV<br><br>
+        <span style="font-size:10px;color:#a08020;font-family:monospace">Detalle: ${(e&&e.message)?e.message:e}</span><br><br>
+        <button class="btn" onclick="initDashboard()">↻ Reintentar</button>
+      </div>`;
+  }
+}
+
+// ═══════════════════════════════════════════
+// PROCESS DATA
+// ═══════════════════════════════════════════
+function processData(rowsM, rowsS, rowsA){
+  const ORDEN=['Ene 2026','Feb 2026','Mar 2026','Abr 2026','May 2026','Jun 2026'];
+  const metPM={}, stockPM={}, stockSemMap={}, venSemMap={};
+  const asinMap={};
+
+  // Find column names dynamically
+  const colFecha = (r)=> Object.keys(r).find(k=>k.toUpperCase().includes('FECHA'))||'';
+  const colMarca = (r)=> Object.keys(r).find(k=>k.toLowerCase().includes('marca'))||'';
+
+  // ── MÉTRICAS
+  rowsM.forEach(row=>{
+    const fKey=colFecha(row)||Object.keys(row)[0];
+    const mKey=colMarca(row)||Object.keys(row)[3];
+    const marca=normMarca(row[mKey]||'');
+    if(!marca)return;
+    const periodo=fechaMes(row[fKey]||'');
+    const semana=fechaSem(row[fKey]||'');
+    const asin=String(row['ASIN']||'').trim();
+    const nombre=String(row['Nombre del producto']||row['Producto']||'').trim();
+
+    // Find value columns
+    const keys=Object.keys(row);
+    const ingKey=keys.find(k=>k.includes('Ingresos enviados'))||keys.find(k=>k.includes('Ingresos'))||'';
+    const udsKey=keys.find(k=>k.includes('Unidades enviadas'))||keys.find(k=>k.includes('Unidades'))||'';
+    const vnKey=keys.find(k=>k.includes('Ventas netas'))||'';
+    const cogsKey=keys.find(k=>k.includes('Coste'))||keys.find(k=>k.includes('COGS'))||'';
+    const devolKey=keys.find(k=>k.includes('devoluciones')||k.includes('Devoluciones'))||'';
+
+    const ing=num(row[ingKey]);
+    const uds=num(row[udsKey]);
+    const vn=num(row[vnKey]);
+    const cogs=num(row[cogsKey]);
+    const devol=num(row[devolKey]);
+
+    if(!metPM[periodo])metPM[periodo]={};
+    if(!metPM[periodo][marca])metPM[periodo][marca]={ingresos:0,uds:0,vn:0,cogs:0,devol:0};
+    metPM[periodo][marca].ingresos+=ing;
+    metPM[periodo][marca].uds+=uds;
+    metPM[periodo][marca].vn+=vn;
+    metPM[periodo][marca].cogs+=cogs;
+    metPM[periodo][marca].devol+=devol;
+
+    // Weekly ventas
+    if(!venSemMap[periodo])venSemMap[periodo]={};
+    if(!venSemMap[periodo][semana])venSemMap[periodo][semana]={bold3:0,lirio:0,util:0};
+    venSemMap[periodo][semana][marca]=(venSemMap[periodo][semana][marca]||0)+ing;
+
+    // ASINs
+    if(asin){
+      if(!asinMap[asin])asinMap[asin]={asin,nombre,marca,ingresos:0,uds:0,vn:0,devol:0};
+      asinMap[asin].ingresos+=ing;
+      asinMap[asin].uds+=uds;
+      asinMap[asin].vn+=vn;
+      asinMap[asin].devol+=devol;
+    }
+  });
+
+  // ── STOCK
+  rowsS.forEach(row=>{
+    const fKey=colFecha(row)||Object.keys(row)[0];
+    const mKey=colMarca(row)||Object.keys(row)[3];
+    const marca=normMarca(row[mKey]||'');
+    if(!marca)return;
+    const periodo=fechaMes(row[fKey]||'');
+    const semana=fechaSem(row[fKey]||'');
+    const keys=Object.keys(row);
+    const stKey=keys.find(k=>k.includes('disponible')||k.includes('aptas'))||keys.find(k=>k.toLowerCase().includes('stock'))||'';
+    const sv=num(row[stKey]);
+
+    if(!stockPM[periodo])stockPM[periodo]={};
+    stockPM[periodo][marca]=(stockPM[periodo][marca]||0)+sv;
+
+    if(!stockSemMap[periodo])stockSemMap[periodo]={};
+    if(!stockSemMap[periodo][semana])stockSemMap[periodo][semana]={bold3:0,lirio:0,util:0};
+    stockSemMap[periodo][semana][marca]=(stockSemMap[periodo][semana][marca]||0)+sv;
+  });
+
+  // ── ADS
+  let adsTotG=0,adsTotV=0,adsTotCl=0,adsTotIm=0,adsTotCo=0;
+  const adsCamp=[];
+  rowsA.forEach(row=>{
+    const keys=Object.keys(row);
+    const gKey=keys.find(k=>k.includes('Costo total')||k.includes('Gasto'))||'';
+    const vKey=keys.find(k=>k.startsWith('Ventas'))||'';
+    const clKey=keys.find(k=>k.includes('Clics'))||'';
+    const imKey=keys.find(k=>k.includes('Impresiones'))||'';
+    const coKey=keys.find(k=>k.includes('Compras'))||'';
+    const fiKey=keys.find(k=>k.includes('inicio'))||'';
+    const ffKey=keys.find(k=>k.includes('finaliz'))||'';
+    const g=num(row[gKey]), v=num(row[vKey]);
+    if(g===0&&v===0)return;
+    adsTotG+=g; adsTotV+=v;
+    adsTotCl+=num(row[clKey]); adsTotIm+=num(row[imKey]); adsTotCo+=num(row[coKey]);
+    adsCamp.push({
+      nombre:(row[fiKey]||'')+'→'+(row[ffKey]||''),
+      gasto:g, ventas:v,
+      clics:num(row[clKey]), imp:num(row[imKey]), comp:num(row[coKey]),
+      roas:g>0?parseFloat((v/g).toFixed(2)):0,
+      acos:v>0?parseFloat((g/v*100).toFixed(1)):0,
+    });
+  });
+
+  // Periodos reales
+  const periodos=ORDEN.filter(p=>metPM[p]);
+
+  // Arrays mensuales
+  const ventas={bold3:[],lirio:[],util:[]};
+  const uds={bold3:[],lirio:[],util:[]};
+  const stock={bold3:[],lirio:[],util:[]};
+  const sh={bold3:[],lirio:[],util:[]};
+
+  periodos.forEach(p=>{
+    MARCAS.forEach(m=>{
+      ventas[m].push(metPM[p]?.[m]?.ingresos||0);
+      uds[m].push(metPM[p]?.[m]?.uds||0);
+      stock[m].push(stockPM[p]?.[m]||0);
+    });
+    const tot=MARCAS.reduce((s,m)=>s+(metPM[p]?.[m]?.ingresos||0),0);
+    MARCAS.forEach(m=>sh[m].push(tot>0?parseFloat(((metPM[p]?.[m]?.ingresos||0)/tot*100).toFixed(1)):0));
+  });
+
+  // Weekly
+  const ventas_sem={}, stock_sem={};
+  periodos.forEach(p=>{
+    if(venSemMap[p]){
+      const sems=Object.keys(venSemMap[p]).sort();
+      ventas_sem[p]={semanas:sems,
+        bold3_ing:sems.map(s=>venSemMap[p][s].bold3||0),
+        lirio_ing:sems.map(s=>venSemMap[p][s].lirio||0),
+        util_ing: sems.map(s=>venSemMap[p][s].util||0),
+      };
+    }
+    if(stockSemMap[p]){
+      const sems=Object.keys(stockSemMap[p]).sort();
+      stock_sem[p]={semanas:sems,
+        bold3:sems.map(s=>stockSemMap[p][s].bold3||0),
+        lirio:sems.map(s=>stockSemMap[p][s].lirio||0),
+      };
+    }
+  });
+
+  // Totales
+  const grand=MARCAS.reduce((s,m)=>s+ventas[m].reduce((a,c)=>a+c,0),0);
+  const b3t=ventas.bold3.reduce((a,c)=>a+c,0);
+  const lrt=ventas.lirio.reduce((a,c)=>a+c,0);
+  const utt=ventas.util.reduce((a,c)=>a+c,0);
+  const lastSt=m=>{for(let i=periodos.length-1;i>=0;i--){const v=stockPM[periodos[i]]?.[m]||0;if(v>0)return v;}return 0;};
+
+  // ASINs
+  const grandA=Object.values(asinMap).reduce((s,a)=>s+a.ingresos,0);
+  const asins=Object.values(asinMap)
+    .map(a=>({...a,share:grandA>0?parseFloat((a.ingresos/grandA*100).toFixed(1)):0,ventas_netas:a.vn}))
+    .sort((a,b)=>b.ingresos-a.ingresos).slice(0,25);
+
+  // DB rows
+  const dbRows=[];
+  periodos.forEach(p=>{
+    MARCAS.forEach(m=>{
+      const dat=metPM[p]?.[m];
+      if(dat?.ingresos>0)dbRows.push({nombre:m.toUpperCase()+' — '+p,asin:'—',marca:m,periodo:p,
+        ingresos:dat.ingresos,uds:dat.uds,ventas_netas:dat.vn,devol:dat.devol,
+        share:grand>0?parseFloat((dat.ingresos/grand*100).toFixed(1)):0});
+    });
+  });
+  asins.forEach(a=>dbRows.push({nombre:a.nombre,asin:a.asin,marca:a.marca,periodo:'Ene–Jun 2026',
+    ingresos:a.ingresos,uds:a.uds,ventas_netas:a.ventas_netas,devol:a.devol,share:a.share}));
+
+  D={periodos,ventas,uds,stock,sh_b3:sh.bold3,sh_lr:sh.lirio,sh_ut:sh.util,
+    ventas_sem,stock_sem,meses_sem:periodos.filter(p=>ventas_sem[p]),
+    adsTotal:{gasto:adsTotG,ventas:adsTotV,clics:adsTotCl,impresiones:adsTotIm,compras:adsTotCo,
+      acos:adsTotV>0?parseFloat((adsTotG/adsTotV*100).toFixed(1)):0,
+      roas:adsTotG>0?parseFloat((adsTotV/adsTotG).toFixed(2)):0},
+    adsCamp,asins,dbRows,
+    totales:{grand,bold3:b3t,lirio:lrt,util:utt,
+      share_b3:grand>0?parseFloat((b3t/grand*100).toFixed(1)):0,
+      share_lr:grand>0?parseFloat((lrt/grand*100).toFixed(1)):0,
+      share_ut:grand>0?parseFloat((utt/grand*100).toFixed(1)):0,
+      stock_b3:lastSt('bold3'),stock_lr:lastSt('lirio'),stock_ut:lastSt('util')},
+  };
+}
+
+// ═══════════════════════════════════════════
+// BUILD UI
+// ═══════════════════════════════════════════
+function buildUI(){
+  const T=D.totales, ADS=D.adsTotal;
+
+  document.getElementById('gen-kpis').innerHTML=`
+    <div class="kcard"><div class="kl">Ingresos totales 2026</div><div class="kv">${mxn(T.grand)} MXN</div><div class="kd">Ene–Jun 2026</div></div>
+    <div class="kcard"><div class="kl">Gasto en Ads</div><div class="kv">${mxn(ADS.gasto)} MXN</div><div class="kd">ROAS: ${ADS.roas.toFixed(1)}x</div></div>
+    <div class="kcard"><div class="kl">ACOS campañas</div><div class="kv good">${ADS.acos}%</div><div class="kd">${Math.round(ADS.compras).toLocaleString()} compras atribuidas</div></div>
+    <div class="kcard"><div class="kl">Ventas atribuidas Ads</div><div class="kv">${mxn(ADS.ventas)} MXN</div><div class="kd">${Math.round(ADS.impresiones).toLocaleString()} impresiones</div></div>
+    <div class="kcard"><div class="kl">Stock bold3</div><div class="kv">${T.stock_b3.toLocaleString()}</div><div class="kd">uds en Amazon</div></div>
+    <div class="kcard"><div class="kl">Stock lirio</div><div class="kv">${T.stock_lr.toLocaleString()}</div><div class="kd">uds en Amazon</div></div>`;
+
+  document.getElementById('gen-sbar').innerHTML=`
+    <div class="seg" style="width:${T.share_b3}%;background:#185FA5">bold3 ${T.share_b3}%</div>
+    <div class="seg" style="width:${T.share_lr}%;background:#1D9E75">lirio ${T.share_lr}%</div>
+    <div class="seg" style="width:${Math.max(T.share_ut,2)}%;background:#D85A30">util ${T.share_ut}%</div>`;
+
+  const maxV=Math.max(T.bold3,T.lirio,T.util)||1;
+  document.getElementById('gen-brows').innerHTML=
+    [['bold3',T.bold3,T.share_b3],['lirio',T.lirio,T.share_lr],['util',T.util,T.share_ut]].map(([b,v,s])=>
+    `<div class="brow"><span class="bn" style="color:${C[b]}">${b}</span><div class="bwrap"><div class="bfill" style="width:${Math.round(v/maxV*100)}%;background:${C[b]}"></div></div><span class="bval">${s}% · ${mxn(v)} MXN</span></div>`).join('');
+
+  document.getElementById('gen-bcards').innerHTML=`
+    <div class="bkcard"><div class="bktop"><span class="bdot" style="background:#185FA5"></span><span class="bname">bold3</span><span class="bshare" style="color:#185FA5">${T.share_b3}%</span></div>
+      <div class="km"><span class="kml">Ingresos totales</span><span class="kmv">${mxn(T.bold3)} MXN</span></div>
+      <div class="km"><span class="kml">Stock en Amazon</span><span class="kmv">${T.stock_b3.toLocaleString()} uds</span></div>
+      <div class="km"><span class="kml">ROAS Ads</span><span class="kmv good">${ADS.roas.toFixed(1)}x</span></div>
+      <div class="km"><span class="kml">ACOS Ads</span><span class="kmv good">${ADS.acos}%</span></div>
+      <div class="km"><span class="kml">Compras Ads</span><span class="kmv">${Math.round(ADS.compras).toLocaleString()}</span></div>
+    </div>
+    <div class="bkcard"><div class="bktop"><span class="bdot" style="background:#1D9E75"></span><span class="bname">lirio</span><span class="bshare" style="color:#1D9E75">${T.share_lr}%</span></div>
+      <div class="km"><span class="kml">Ingresos totales</span><span class="kmv">${mxn(T.lirio)} MXN</span></div>
+      <div class="km"><span class="kml">Stock en Amazon</span><span class="kmv">${T.stock_lr.toLocaleString()} uds</span></div>
+      <div class="km"><span class="kml">Ventas Ads atrib.</span><span class="kmv">${mxn(ADS.ventas)} MXN</span></div>
+      <div class="km"><span class="kml">Clics Ads</span><span class="kmv">${Math.round(ADS.clics).toLocaleString()}</span></div>
+      <div class="km"><span class="kml">Impresiones</span><span class="kmv">${Math.round(ADS.impresiones).toLocaleString()}</span></div>
+    </div>
+    <div class="bkcard"><div class="bktop"><span class="bdot" style="background:#D85A30"></span><span class="bname">util</span><span class="bshare" style="color:#D85A30">${T.share_ut}%</span></div>
+      <div class="km"><span class="kml">Ingresos totales</span><span class="kmv">${mxn(T.util)} MXN</span></div>
+      <div class="km"><span class="kml">Stock en Amazon</span><span class="kmv bad">${T.stock_ut.toLocaleString()} uds</span></div>
+      <div class="km"><span class="kml">Estado</span><span class="kmv bad">⚠ Muy baja actividad</span></div>
+    </div>`;
+
+  // Buttons
+  document.getElementById('sem-btns').innerHTML=D.meses_sem.map((m,i)=>
+    `<button class="mtab${i===0?' on':''}" onclick="selMes('${m}',this)">${m.split(' ')[0]}</button>`).join('');
+  activeSemMes=D.meses_sem[0]||'';
+
+  document.getElementById('men-btns').innerHTML=D.periodos.map(m=>
+    `<button class="mtab" onclick="selMesM('${m}',this)">${m.split(' ')[0]}</button>`).join('');
+
+  document.getElementById('dbPer').innerHTML='<option value="all">Todos</option>'+
+    D.periodos.map(p=>`<option value="${p}">${p}</option>`).join('');
+
+  // ADS
+  document.getElementById('ads-kpis').innerHTML=`
+    <div class="kcard"><div class="kl">Gasto en Ads</div><div class="kv">${mxn(ADS.gasto)} MXN</div><div class="kd">${D.adsCamp.length} campañas</div></div>
+    <div class="kcard"><div class="kl">Ventas atribuidas</div><div class="kv">${mxn(ADS.ventas)} MXN</div><div class="kd">14 días atribución</div></div>
+    <div class="kcard"><div class="kl">ACOS global</div><div class="kv good">${ADS.acos}%</div><div class="kd">muy eficiente ✓</div></div>
+    <div class="kcard"><div class="kl">ROAS global</div><div class="kv good">${ADS.roas.toFixed(1)}x</div><div class="kd">${Math.round(ADS.compras).toLocaleString()} compras · ${Math.round(ADS.clics).toLocaleString()} clics</div></div>`;
+  document.getElementById('ads-kpis2').innerHTML=`
+    <div class="kcard"><div class="kl">Impresiones</div><div class="kv">${Math.round(ADS.impresiones).toLocaleString()}</div></div>
+    <div class="kcard"><div class="kl">Clics</div><div class="kv">${Math.round(ADS.clics).toLocaleString()}</div><div class="kd">CTR: ${ADS.impresiones>0?(ADS.clics/ADS.impresiones*100).toFixed(2):'0'}%</div></div>
+    <div class="kcard"><div class="kl">Compras atribuidas</div><div class="kv">${Math.round(ADS.compras).toLocaleString()}</div></div>`;
+  document.getElementById('ads-tbody').innerHTML=D.adsCamp.map(c=>`
+    <tr><td style="font-weight:600;font-size:10px">${c.nombre}</td>
+      <td>${Math.round(c.imp).toLocaleString()}</td><td>${Math.round(c.clics).toLocaleString()}</td>
+      <td>$${c.gasto.toFixed(2)}</td><td>$${c.ventas.toFixed(2)}</td><td>${Math.round(c.comp).toLocaleString()}</td>
+      <td class="${c.acos<15?'good':c.acos<30?'warn':'bad'}">${c.acos}%</td>
+      <td class="${c.roas>10?'good':c.roas>3?'warn':'bad'}">${c.roas.toFixed(2)}x</td>
+    </tr>`).join('')+`<tr class="tot"><td>TOTAL</td>
+    <td>${Math.round(ADS.impresiones).toLocaleString()}</td><td>${Math.round(ADS.clics).toLocaleString()}</td>
+    <td>$${ADS.gasto.toFixed(2)}</td><td>$${ADS.ventas.toFixed(2)}</td><td>${Math.round(ADS.compras).toLocaleString()}</td>
+    <td class="good">${ADS.acos}%</td><td class="good">${ADS.roas.toFixed(1)}x</td></tr>`;
+}
+
+// ═══════════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════════
 function go(id,el){
   document.querySelectorAll('.sp').forEach(p=>p.classList.remove('on'));
   document.querySelectorAll('.ntab').forEach(t=>t.classList.remove('on'));
@@ -375,7 +654,7 @@ function go(id,el){
     if(id==='mensual')renderMensual('all');
     if(id==='ads')initAds();
     if(id==='asins')renderAsins();
-    if(id==='datos'){dbFiltered=[...D.db_rows];dbFiltrar();}
+    if(id==='datos'){dbFiltered=[...D.dbRows];dbFiltrar();}
     inited[id]=true;
   }
 }
@@ -394,13 +673,14 @@ function selBrand(b){
   const shareT=(D.ventas[b].reduce((a,c)=>a+c,0)/D.totales.grand*100).toFixed(1);
   const totV=D.ventas[b].reduce((a,c)=>a+c,0);
   const totU=D.uds[b].reduce((a,c)=>a+c,0);
-  const lastSt=D.stock[b]&&D.stock[b].length?D.stock[b][D.stock[b].length-1]:0;
+  const lastSt=D.stock[b]?.length?D.stock[b][D.stock[b].length-1]:0;
+  const ADS=D.adsTotal;
   document.getElementById('brand-content').innerHTML=`
     <div class="krow4" style="margin-bottom:14px">
-      <div class="kcard"><div class="kl">Ingresos totales 2026</div><div class="kv">${mxn(D.totales.grand)}</div><div class="kd">MXN · Ene–Jun</div></div>
-      <div class="kcard"><div class="kl">Gasto en Ads</div><div class="kv">${mxn(D.ads_total.gasto)}</div><div class="kd">ROAS: ${D.ads_total.roas.toFixed(1)}x</div></div>
-      <div class="kcard"><div class="kl">ACOS campañas</div><div class="kv good">${D.ads_total.acos}%</div><div class="kd">${D.ads_total.compras.toLocaleString()} compras atribuidas</div></div>
-      <div class="kcard"><div class="kl">Ventas atribuidas Ads</div><div class="kv">${mxn(D.ads_total.ventas)}</div><div class="kd">${D.ads_total.impresiones.toLocaleString()} impresiones</div></div>
+      <div class="kcard"><div class="kl">Ingresos totales</div><div class="kv">${mxn(D.totales.grand)} MXN</div><div class="kd">Ene–Jun 2026</div></div>
+      <div class="kcard"><div class="kl">Gasto en Ads</div><div class="kv">${mxn(ADS.gasto)} MXN</div><div class="kd">ROAS: ${ADS.roas.toFixed(1)}x</div></div>
+      <div class="kcard"><div class="kl">ACOS campañas</div><div class="kv good">${ADS.acos}%</div><div class="kd">${Math.round(ADS.compras).toLocaleString()} compras atribuidas</div></div>
+      <div class="kcard"><div class="kl">Ventas atribuidas Ads</div><div class="kv">${mxn(ADS.ventas)} MXN</div><div class="kd">${Math.round(ADS.impresiones).toLocaleString()} impresiones</div></div>
     </div>
     <div class="sec">share — marca ${b}</div>
     <div class="card" style="margin-bottom:10px">
@@ -418,20 +698,20 @@ function selBrand(b){
         <div class="km"><span class="kml">Stock en Amazon</span><span class="kmv">${lastSt.toLocaleString()} uds</span></div>
       </div>
       <div class="bkcard"><div class="bktop"><span style="font-size:13px;font-weight:700">Ads globales</span></div>
-        <div class="km"><span class="kml">ACOS</span><span class="kmv good">${D.ads_total.acos}%</span></div>
-        <div class="km"><span class="kml">ROAS</span><span class="kmv good">${D.ads_total.roas.toFixed(1)}x</span></div>
-        <div class="km"><span class="kml">Ventas atrib. Ads</span><span class="kmv">${mxn(D.ads_total.ventas)}</span></div>
-        <div class="km"><span class="kml">Compras atrib.</span><span class="kmv">${D.ads_total.compras.toLocaleString()}</span></div>
-        <div class="km"><span class="kml">Gasto Ads</span><span class="kmv">${mxn(D.ads_total.gasto)}</span></div>
+        <div class="km"><span class="kml">ACOS</span><span class="kmv good">${ADS.acos}%</span></div>
+        <div class="km"><span class="kml">ROAS</span><span class="kmv good">${ADS.roas.toFixed(1)}x</span></div>
+        <div class="km"><span class="kml">Ventas atrib.</span><span class="kmv">${mxn(ADS.ventas)}</span></div>
+        <div class="km"><span class="kml">Compras atrib.</span><span class="kmv">${Math.round(ADS.compras).toLocaleString()}</span></div>
+        <div class="km"><span class="kml">Gasto Ads</span><span class="kmv">${mxn(ADS.gasto)}</span></div>
       </div>
       <div class="bkcard"><div class="bktop"><span style="font-size:13px;font-weight:700">Tráfico Ads</span></div>
-        <div class="km"><span class="kml">Impresiones</span><span class="kmv">${D.ads_total.impresiones.toLocaleString()}</span></div>
-        <div class="km"><span class="kml">Clics</span><span class="kmv">${D.ads_total.clics.toLocaleString()}</span></div>
-        <div class="km"><span class="kml">CTR</span><span class="kmv">${(D.ads_total.clics/D.ads_total.impresiones*100).toFixed(2)}%</span></div>
+        <div class="km"><span class="kml">Impresiones</span><span class="kmv">${Math.round(ADS.impresiones).toLocaleString()}</span></div>
+        <div class="km"><span class="kml">Clics</span><span class="kmv">${Math.round(ADS.clics).toLocaleString()}</span></div>
+        <div class="km"><span class="kml">CTR</span><span class="kmv">${ADS.impresiones>0?(ADS.clics/ADS.impresiones*100).toFixed(2):'0'}%</span></div>
       </div>
     </div>
     <div class="g3">
-      <div class="card"><div class="ct">Ingresos mensuales — ${b}</div><div style="position:relative;height:160px"><canvas id="br_v"></canvas></div></div>
+      <div class="card"><div class="ct">Ingresos — ${b}</div><div style="position:relative;height:160px"><canvas id="br_v"></canvas></div></div>
       <div class="card"><div class="ct">Unidades — ${b}</div><div style="position:relative;height:160px"><canvas id="br_u"></canvas></div></div>
       <div class="card"><div class="ct">Stock — ${b}</div><div style="position:relative;height:160px"><canvas id="br_st"></canvas></div></div>
     </div>`;
@@ -442,39 +722,22 @@ function selBrand(b){
   },50);
 }
 
-function selMes(mes,el){
-  activeSemMes=mes;
-  document.querySelectorAll('#p-semanal .mtab').forEach(t=>t.classList.remove('on'));
-  el.classList.add('on');
-  renderSemanal(mes);inited.semanal=true;
-}
+function selMes(mes,el){activeSemMes=mes;document.querySelectorAll('#p-semanal .mtab').forEach(t=>t.classList.remove('on'));el.classList.add('on');renderSemanal(mes);inited.semanal=true;}
 function renderSemanal(mes){
   kill(['sem_v','sem_st','sem_b3v','sem_lrv','sem_stc']);
-  const vd=D.ventas_sem[mes]; const sd=D.stock_sem[mes];
+  const vd=D.ventas_sem[mes];const sd=D.stock_sem[mes];
   if(!vd){document.getElementById('sem-kpis').innerHTML='<div class="kcard"><div class="kl">Sin datos semanales</div><div class="kv">—</div></div>';return;}
-  const labs=vd.semanas; const stLabs=sd?sd.semanas:labs;
-  const totB=vd.bold3_ing.reduce((a,c)=>a+c,0);
-  const totL=vd.lirio_ing.reduce((a,c)=>a+c,0);
-  const totU=vd.util_ing.reduce((a,c)=>a+c,0);
-  const totM=totB+totL+totU;
-  document.getElementById('sem-mes-lbl').textContent=mes;
-  document.getElementById('lbl-sv').textContent=mes;
-  document.getElementById('lbl-st').textContent=mes;
-  document.getElementById('lbl-tbl').textContent=mes;
+  const labs=vd.semanas;const stLabs=sd?sd.semanas:labs;
+  const totB=vd.bold3_ing.reduce((a,c)=>a+c,0),totL=vd.lirio_ing.reduce((a,c)=>a+c,0),totU=vd.util_ing.reduce((a,c)=>a+c,0),totM=totB+totL+totU;
+  ['sem-mes-lbl','lbl-sv','lbl-st','lbl-tbl'].forEach(id=>document.getElementById(id).textContent=mes);
   document.getElementById('sem-kpis').innerHTML=`
     <div class="kcard"><div class="kl">Ingresos del mes</div><div class="kv">${mxn(totM)}</div><div class="kd">${labs.length} semana(s)</div></div>
-    <div class="kcard"><div class="kl">bold3 en el mes</div><div class="kv" style="color:#185FA5">${totM>0?(totB/totM*100).toFixed(1):'0'}%</div><div class="kd">${mxn(totB)} MXN</div></div>
-    <div class="kcard"><div class="kl">lirio en el mes</div><div class="kv" style="color:#1D9E75">${totM>0?(totL/totM*100).toFixed(1):'0'}%</div><div class="kd">${mxn(totL)} MXN</div></div>`;
-  document.getElementById('sem-sbar').innerHTML=totM>0?
-    `<div class="seg" style="width:${(totB/totM*100).toFixed(1)}%;background:#185FA5">bold3 ${(totB/totM*100).toFixed(0)}%</div>
-     <div class="seg" style="width:${(totL/totM*100).toFixed(1)}%;background:#1D9E75">lirio ${(totL/totM*100).toFixed(0)}%</div>
-     <div class="seg" style="width:${Math.max(totU/totM*100,.5).toFixed(1)}%;background:#D85A30">${totU>0?'util':''}</div>`:'';
+    <div class="kcard"><div class="kl">bold3</div><div class="kv" style="color:#185FA5">${totM>0?(totB/totM*100).toFixed(1):'0'}%</div><div class="kd">${mxn(totB)} MXN</div></div>
+    <div class="kcard"><div class="kl">lirio</div><div class="kv" style="color:#1D9E75">${totM>0?(totL/totM*100).toFixed(1):'0'}%</div><div class="kd">${mxn(totL)} MXN</div></div>`;
+  document.getElementById('sem-sbar').innerHTML=totM>0?`<div class="seg" style="width:${(totB/totM*100).toFixed(1)}%;background:#185FA5">bold3 ${(totB/totM*100).toFixed(0)}%</div><div class="seg" style="width:${(totL/totM*100).toFixed(1)}%;background:#1D9E75">lirio ${(totL/totM*100).toFixed(0)}%</div><div class="seg" style="width:${Math.max(totU/totM*100,.5).toFixed(1)}%;background:#D85A30">${totU>0?'util':''}</div>`:'';
   const maxT=Math.max(totB,totL,totU)||1;
-  document.getElementById('sem-brows').innerHTML=
-    `<div class="brow"><span class="bn" style="color:#185FA5">bold3</span><div class="bwrap"><div class="bfill" style="width:${Math.round(totB/maxT*100)}%;background:#185FA5"></div></div><span class="bval">${totM>0?(totB/totM*100).toFixed(1)+'%':'—'} · ${mxn(totB)}</span></div>
-     <div class="brow"><span class="bn" style="color:#1D9E75">lirio</span><div class="bwrap"><div class="bfill" style="width:${Math.round(totL/maxT*100)}%;background:#1D9E75"></div></div><span class="bval">${totM>0?(totL/totM*100).toFixed(1)+'%':'—'} · ${mxn(totL)}</span></div>
-     <div class="brow"><span class="bn" style="color:#D85A30">util</span><div class="bwrap"><div class="bfill" style="width:${Math.round(totU/maxT*100)}%;background:#D85A30"></div></div><span class="bval">${totM>0?(totU/totM*100).toFixed(1)+'%':'—'} · ${mxn(totU)}</span></div>`;
-  const stB=sd?sd.bold3:[]; const stL=sd?sd.lirio:[]; const stU=sd?sd.util||[]:[]; 
+  document.getElementById('sem-brows').innerHTML=['bold3','lirio','util'].map((b,i)=>{const v=[totB,totL,totU][i];return`<div class="brow"><span class="bn" style="color:${C[b]}">${b}</span><div class="bwrap"><div class="bfill" style="width:${Math.round(v/maxT*100)}%;background:${C[b]}"></div></div><span class="bval">${totM>0?(v/totM*100).toFixed(1)+'%':'—'} · ${mxn(v)}</span></div>`;}).join('');
+  const stB=sd?sd.bold3:[],stL=sd?sd.lirio:[];
   charts.sem_v=new Chart(document.getElementById('sem_v'),{type:'bar',data:{labels:labs,datasets:[{label:'bold3',...mkB(C.bold3,vd.bold3_ing)},{label:'lirio',...mkB(C.lirio,vd.lirio_ing)},{label:'util',...mkB(C.util,vd.util_ing)}]},options:{...bo,scales:sc(v=>v>=1000?(v/1000).toFixed(0)+'K':v),plugins:lgnd()}});
   charts.sem_st=new Chart(document.getElementById('sem_st'),{type:'line',data:{labels:stLabs,datasets:[{label:'bold3',...mkL(C.bold3,stB)},{label:'lirio',...mkL(C.lirio,stL)}]},options:{...bo,scales:sc(),plugins:lgnd()}});
   charts.sem_b3v=new Chart(document.getElementById('sem_b3v'),{type:'bar',data:{labels:labs,datasets:[{label:'bold3',...mkB(C.bold3,vd.bold3_ing)}]},options:{...bo,scales:sc(v=>v>=1000?(v/1000).toFixed(0)+'K':v)}});
@@ -482,49 +745,25 @@ function renderSemanal(mes){
   charts.sem_stc=new Chart(document.getElementById('sem_stc'),{type:'line',data:{labels:stLabs,datasets:[{label:'bold3',...mkL(C.bold3,stB)},{label:'lirio',...mkL(C.lirio,stL)}]},options:{...bo,scales:sc(),plugins:lgnd()}});
   document.getElementById('sem-tbody').innerHTML=labs.map((s,i)=>{
     const b=vd.bold3_ing[i]||0,l=vd.lirio_ing[i]||0,u=vd.util_ing[i]||0,tot=b+l+u;
-    return`<tr><td style="font-weight:600">${s}</td>
-      <td style="color:#185FA5;font-weight:600">${mxn(b)}</td>
-      <td style="color:#1D9E75;font-weight:600">${mxn(l)}</td>
-      <td style="color:#D85A30">${mxn(u)}</td>
-      <td style="font-weight:700">${mxn(tot)}</td>
-      <td>${tot>0?(b/tot*100).toFixed(1)+'%':'—'}</td>
-      <td>${tot>0?(l/tot*100).toFixed(1)+'%':'—'}</td>
-      <td>${(stB[i]||0).toLocaleString()}</td>
-      <td>${(stL[i]||0).toLocaleString()}</td></tr>`;
+    return`<tr><td style="font-weight:600">${s}</td><td style="color:#185FA5;font-weight:600">${mxn(b)}</td><td style="color:#1D9E75;font-weight:600">${mxn(l)}</td><td style="color:#D85A30">${mxn(u)}</td><td style="font-weight:700">${mxn(tot)}</td><td>${tot>0?(b/tot*100).toFixed(1)+'%':'—'}</td><td>${tot>0?(l/tot*100).toFixed(1)+'%':'—'}</td><td>${(stB[i]||0).toLocaleString()}</td><td>${(stL[i]||0).toLocaleString()}</td></tr>`;
   }).join('')+`<tr class="tot"><td>TOTAL</td><td>${mxn(totB)}</td><td>${mxn(totL)}</td><td>${mxn(totU)}</td><td>${mxn(totM)}</td><td style="color:#185FA5">${totM>0?(totB/totM*100).toFixed(1)+'%':'—'}</td><td style="color:#1D9E75">${totM>0?(totL/totM*100).toFixed(1)+'%':'—'}</td><td colspan="2">—</td></tr>`;
 }
 
-function selMesM(mes,el){
-  document.querySelectorAll('#p-mensual .mtab').forEach(t=>t.classList.remove('on'));
-  el.classList.add('on');
-  renderMensual(mes);inited.mensual=true;
-}
+function selMesM(mes,el){document.querySelectorAll('#p-mensual .mtab').forEach(t=>t.classList.remove('on'));el.classList.add('on');renderMensual(mes);inited.mensual=true;}
 function renderMensual(mes){
   kill(['men_v','men_sh','men_u','men_st']);
   let labs,vB,vL,vU,uB,uL,sB,sL,shB,shL,shU;
-  if(mes==='all'){
-    labs=D.periodos;vB=D.ventas.bold3;vL=D.ventas.lirio;vU=D.ventas.util;
-    uB=D.uds.bold3;uL=D.uds.lirio;sB=D.stock.bold3;sL=D.stock.lirio;
-    shB=D.sh_b3;shL=D.sh_lr;shU=D.sh_ut;
-  } else {
-    const idx=D.periodos.indexOf(mes);
-    labs=[mes];vB=[D.ventas.bold3[idx]];vL=[D.ventas.lirio[idx]];vU=[D.ventas.util[idx]];
-    uB=[D.uds.bold3[idx]];uL=[D.uds.lirio[idx]];
-    sB=[D.stock.bold3[idx]];sL=[D.stock.lirio[idx]];
-    const tot=vB[0]+vL[0]+vU[0];
-    shB=[tot>0?parseFloat((vB[0]/tot*100).toFixed(1)):0];
-    shL=[tot>0?parseFloat((vL[0]/tot*100).toFixed(1)):0];
-    shU=[tot>0?parseFloat((vU[0]/tot*100).toFixed(1)):0];
-  }
+  if(mes==='all'){labs=D.periodos;vB=D.ventas.bold3;vL=D.ventas.lirio;vU=D.ventas.util;uB=D.uds.bold3;uL=D.uds.lirio;sB=D.stock.bold3;sL=D.stock.lirio;shB=D.sh_b3;shL=D.sh_lr;shU=D.sh_ut;}
+  else{const i=D.periodos.indexOf(mes);labs=[mes];vB=[D.ventas.bold3[i]];vL=[D.ventas.lirio[i]];vU=[D.ventas.util[i]];uB=[D.uds.bold3[i]];uL=[D.uds.lirio[i]];sB=[D.stock.bold3[i]];sL=[D.stock.lirio[i]];const t=vB[0]+vL[0]+vU[0];shB=[t>0?parseFloat((vB[0]/t*100).toFixed(1)):0];shL=[t>0?parseFloat((vL[0]/t*100).toFixed(1)):0];shU=[t>0?parseFloat((vU[0]/t*100).toFixed(1)):0];}
   const totV=vB.reduce((a,c)=>a+c,0)+vL.reduce((a,c)=>a+c,0)+vU.reduce((a,c)=>a+c,0);
-  const totB=vB.reduce((a,c)=>a+c,0);const totL=vL.reduce((a,c)=>a+c,0);const totU=vU.reduce((a,c)=>a+c,0);
+  const totB=vB.reduce((a,c)=>a+c,0),totL=vL.reduce((a,c)=>a+c,0),totU=vU.reduce((a,c)=>a+c,0);
   document.getElementById('men-kpis').innerHTML=`
     <div class="kcard"><div class="kl">Ingresos ${mes==='all'?'totales':mes}</div><div class="kv">${mxn(totV)} MXN</div><div class="kd">${mes==='all'?'Ene–Jun 2026':mes}</div></div>
     <div class="kcard"><div class="kl">bold3</div><div class="kv" style="color:#185FA5">${mxn(totB)}</div><div class="kd">${totV>0?(totB/totV*100).toFixed(1)+'% share':'—'}</div></div>
     <div class="kcard"><div class="kl">lirio</div><div class="kv" style="color:#1D9E75">${mxn(totL)}</div><div class="kd">${totV>0?(totL/totV*100).toFixed(1)+'% share':'—'}</div></div>
     <div class="kcard"><div class="kl">util</div><div class="kv" style="color:#D85A30">${mxn(totU)}</div><div class="kd">${totV>0?(totU/totV*100).toFixed(1)+'% share':'—'}</div></div>`;
   document.getElementById('men-ct-v').textContent=mes==='all'?'Ingresos por mes — comparativa marcas':'Ingresos — '+mes;
-  document.getElementById('men-ct-sh').textContent=mes==='all'?'Share mensual — evolución (%)':'Share de ventas — '+mes;
+  document.getElementById('men-ct-sh').textContent=mes==='all'?'Share mensual (%)':'Share — '+mes;
   charts.men_v=new Chart(document.getElementById('men_v'),{type:'bar',data:{labels:labs,datasets:[{label:'bold3',...mkB(C.bold3,vB)},{label:'lirio',...mkB(C.lirio,vL)},{label:'util',...mkB(C.util,vU)}]},options:{...bo,scales:sc(v=>v>=1e6?(v/1e6).toFixed(1)+'M':v>=1000?(v/1000).toFixed(0)+'K':v),plugins:lgnd()}});
   charts.men_sh=new Chart(document.getElementById('men_sh'),{type:'bar',data:{labels:labs,datasets:[{label:'bold3',...mkB(C.bold3,shB,'s')},{label:'lirio',...mkB(C.lirio,shL,'s')},{label:'util',...mkB(C.util,shU,'s')}]},options:{...bo,scales:{x:{grid:{display:false},ticks:{font:{size:9},autoSkip:false}},y:{grid:{color:gc},max:100,min:0,ticks:{font:{size:9},callback:v=>v+'%'}}},plugins:lgnd()}});
   charts.men_u=new Chart(document.getElementById('men_u'),{type:'bar',data:{labels:labs,datasets:[{label:'bold3',...mkB(C.bold3,uB)},{label:'lirio',...mkB(C.lirio,uL)}]},options:{...bo,scales:sc(),plugins:lgnd()}});
@@ -533,45 +772,32 @@ function renderMensual(mes){
 
 function initAds(){
   kill(['ads_bar','ads_roas']);
-  const nm=D.ads_camp.map(c=>c.nombre.substring(0,25));
-  charts.ads_bar=new Chart(document.getElementById('ads_bar'),{type:'bar',data:{labels:nm,datasets:[{label:'Gasto',data:D.ads_camp.map(c=>c.gasto),backgroundColor:'#E24B4A99',borderRadius:3},{label:'Ventas',data:D.ads_camp.map(c=>c.ventas),backgroundColor:'#185FA5DD',borderRadius:3}]},options:{...bo,scales:{x:{grid:{display:false},ticks:{font:{size:8},autoSkip:false,maxRotation:35}},y:{grid:{color:gc},ticks:{font:{size:9},callback:v=>'$'+(v/1000).toFixed(0)+'K'}}},plugins:lgnd()}});
-  charts.ads_roas=new Chart(document.getElementById('ads_roas'),{type:'bar',data:{labels:nm,datasets:[{label:'ROAS',data:D.ads_camp.map(c=>c.roas),backgroundColor:D.ads_camp.map(c=>c.roas>10?'#1D9E75DD':c.roas>3?'#BA751799':'#E24B4A99'),borderRadius:3}]},options:{...bo,scales:{x:{grid:{display:false},ticks:{font:{size:8},autoSkip:false,maxRotation:35}},y:{grid:{color:gc},ticks:{font:{size:9},callback:v=>v.toFixed(0)+'x'}}}}});
+  const nm=D.adsCamp.map(c=>c.nombre.substring(0,25));
+  charts.ads_bar=new Chart(document.getElementById('ads_bar'),{type:'bar',data:{labels:nm,datasets:[{label:'Gasto',data:D.adsCamp.map(c=>c.gasto),backgroundColor:'#E24B4A99',borderRadius:3},{label:'Ventas',data:D.adsCamp.map(c=>c.ventas),backgroundColor:'#185FA5DD',borderRadius:3}]},options:{...bo,scales:{x:{grid:{display:false},ticks:{font:{size:8},autoSkip:false,maxRotation:35}},y:{grid:{color:gc},ticks:{font:{size:9},callback:v=>'$'+(v/1000).toFixed(0)+'K'}}},plugins:lgnd()}});
+  charts.ads_roas=new Chart(document.getElementById('ads_roas'),{type:'bar',data:{labels:nm,datasets:[{label:'ROAS',data:D.adsCamp.map(c=>c.roas),backgroundColor:D.adsCamp.map(c=>c.roas>10?'#1D9E75DD':c.roas>3?'#BA751799':'#E24B4A99'),borderRadius:3}]},options:{...bo,scales:{x:{grid:{display:false},ticks:{font:{size:8},autoSkip:false,maxRotation:35}},y:{grid:{color:gc},ticks:{font:{size:9},callback:v=>v.toFixed(0)+'x'}}}}});
 }
 
-let asinFiltered=[...D.asins];
 function renderAsins(){
+  if(!D)return;
   kill(['asin_d','asin_bar']);
-  const mf=document.getElementById('asinM').value;
-  const sb=document.getElementById('asinS').value;
-  asinFiltered=D.asins.filter(a=>mf==='all'||a.marca===mf).sort((a,b)=>b[sb]-a[sb]);
+  const mf=document.getElementById('asinM').value,sb=document.getElementById('asinS').value;
+  const af=D.asins.filter(a=>mf==='all'||a.marca===mf).sort((a,b)=>b[sb]-a[sb]);
   const grand=D.asins.reduce((s,a)=>s+a.ingresos,0);
-  document.getElementById('asinCnt').textContent=asinFiltered.length+' ASINs · '+mxn(asinFiltered.reduce((s,a)=>s+a.ingresos,0))+' MXN';
-  const maxV=Math.max(...asinFiltered.map(a=>a.ingresos))||1;
-  document.getElementById('asinBody').innerHTML=asinFiltered.map(a=>`
-    <tr>
-      <td><div style="font-weight:600;font-size:10px;max-width:220px;overflow:hidden;text-overflow:ellipsis">${a.nombre}</div><div style="font-size:9px;color:#888">${a.asin}</div></td>
-      <td><span class="pill ${PM[a.marca]}">${a.marca}</span></td>
-      <td><div class="smb"><div class="smb-w"><div class="smb-f" style="width:${Math.round(a.ingresos/maxV*100)}%;background:${C[a.marca]}"></div></div><span style="font-weight:600;font-size:10px">${mxn(a.ingresos)}</span></div></td>
-      <td style="color:${C[a.marca]};font-weight:700">${a.share}%</td>
-      <td>${mxn(a.ventas_netas)}</td>
-      <td>${a.uds.toLocaleString()}</td>
-      <td>${a.devol}</td>
-    </tr>`).join('')+`<tr class="tot"><td colspan="2">TOTAL (${asinFiltered.length})</td><td>${mxn(asinFiltered.reduce((s,a)=>s+a.ingresos,0))}</td><td style="color:#FF9900">${(asinFiltered.reduce((s,a)=>s+a.ingresos,0)/grand*100).toFixed(1)}%</td><td>${mxn(asinFiltered.reduce((s,a)=>s+a.ventas_netas,0))}</td><td>${asinFiltered.reduce((s,a)=>s+a.uds,0).toLocaleString()}</td><td>${asinFiltered.reduce((s,a)=>s+a.devol,0)}</td></tr>`;
-  const top10=asinFiltered.slice(0,10);
+  document.getElementById('asinCnt').textContent=af.length+' ASINs · '+mxn(af.reduce((s,a)=>s+a.ingresos,0))+' MXN';
+  const maxV=Math.max(...af.map(a=>a.ingresos))||1;
+  document.getElementById('asinBody').innerHTML=af.map(a=>`<tr>
+    <td><div style="font-weight:600;font-size:10px;max-width:220px;overflow:hidden;text-overflow:ellipsis">${a.nombre}</div><div style="font-size:9px;color:#888">${a.asin}</div></td>
+    <td><span class="pill ${PM[a.marca]}">${a.marca}</span></td>
+    <td><div class="smb"><div class="smb-w"><div class="smb-f" style="width:${Math.round(a.ingresos/maxV*100)}%;background:${C[a.marca]}"></div></div><span style="font-weight:600;font-size:10px">${mxn(a.ingresos)}</span></div></td>
+    <td style="color:${C[a.marca]};font-weight:700">${a.share}%</td>
+    <td>${mxn(a.ventas_netas)}</td><td>${a.uds.toLocaleString()}</td><td>${a.devol}</td>
+  </tr>`).join('')+`<tr class="tot"><td colspan="2">TOTAL (${af.length})</td><td>${mxn(af.reduce((s,a)=>s+a.ingresos,0))}</td><td style="color:#FF9900">${(af.reduce((s,a)=>s+a.ingresos,0)/grand*100).toFixed(1)}%</td><td>${mxn(af.reduce((s,a)=>s+a.ventas_netas,0))}</td><td>${af.reduce((s,a)=>s+a.uds,0).toLocaleString()}</td><td>${af.reduce((s,a)=>s+a.devol,0)}</td></tr>`;
+  const top10=af.slice(0,10);
   charts.asin_d=new Chart(document.getElementById('asin_d'),{type:'doughnut',data:{labels:top10.map(a=>a.nombre.substring(0,22)),datasets:[{data:top10.map(a=>a.ingresos),backgroundColor:top10.map(a=>C[a.marca]),borderWidth:1}]},options:{...bo,cutout:'50%',plugins:{legend:{display:true,position:'right',labels:{font:{size:8},boxWidth:10,padding:4}}}}});
   charts.asin_bar=new Chart(document.getElementById('asin_bar'),{type:'bar',data:{labels:top10.map(a=>a.nombre.substring(0,20)),datasets:[{label:'Ingresos',data:top10.map(a=>a.ingresos),backgroundColor:top10.map(a=>C[a.marca]),borderRadius:3}]},options:{...bo,indexAxis:'y',scales:{x:{grid:{color:gc},ticks:{font:{size:9},callback:v=>'$'+(v/1000).toFixed(0)+'K'}},y:{grid:{display:false},ticks:{font:{size:8}}}}}});
 }
 
-let dbFiltered=[...D.db_rows];let dbSC='ingresos';let dbSD=-1;
-function dbFiltrar(){
-  const q=document.getElementById('dbSearch').value.toLowerCase();
-  const m=document.getElementById('dbMarca').value;
-  const p=document.getElementById('dbPer').value;
-  dbFiltered=D.db_rows.filter(r=>{
-    const mQ=!q||r.nombre.toLowerCase().includes(q)||r.asin.toLowerCase().includes(q)||r.marca.toLowerCase().includes(q);
-    return mQ&&(m==='all'||r.marca===m)&&(p==='all'||r.periodo===p);
-  });dbRender();
-}
+function dbFiltrar(){if(!D)return;const q=document.getElementById('dbSearch').value.toLowerCase(),m=document.getElementById('dbMarca').value,p=document.getElementById('dbPer').value;dbFiltered=D.dbRows.filter(r=>{const mQ=!q||r.nombre.toLowerCase().includes(q)||r.asin.toLowerCase().includes(q)||r.marca.toLowerCase().includes(q);return mQ&&(m==='all'||r.marca===m)&&(p==='all'||r.periodo===p);});dbRender();}
 function dbLimpiar(){document.getElementById('dbSearch').value='';document.getElementById('dbMarca').value='all';document.getElementById('dbPer').value='all';dbFiltrar();}
 function dbSort(col){if(dbSC===col)dbSD*=-1;else{dbSC=col;dbSD=-1;}dbFiltered.sort((a,b)=>typeof a[col]==='string'?a[col].localeCompare(b[col])*dbSD:(b[col]-a[col])*dbSD);dbRender();}
 function dbRender(){
@@ -580,25 +806,20 @@ function dbRender(){
   document.getElementById('dbBadge').textContent=(document.getElementById('dbSearch').value||document.getElementById('dbMarca').value!=='all'||document.getElementById('dbPer').value!=='all')?'Filtrado':'Sin filtros';
   document.getElementById('db_kpis').innerHTML=`
     <div class="kcard"><div class="kl">Ingresos</div><div class="kv">${mxn(tv)}</div><div class="kd">${dbFiltered.length} registros</div></div>
-    <div class="kcard"><div class="kl">Unidades</div><div class="kv">${dbFiltered.reduce((s,r)=>s+r.uds,0).toLocaleString()}</div><div class="kd">total filtro</div></div>
-    <div class="kcard"><div class="kl">Ventas netas</div><div class="kv">${mxn(dbFiltered.reduce((s,r)=>s+r.ventas_netas,0))}</div><div class="kd">total filtro</div></div>
-    <div class="kcard"><div class="kl">Devoluciones</div><div class="kv">${dbFiltered.reduce((s,r)=>s+r.devol,0)}</div><div class="kd">total filtro</div></div>`;
-  document.getElementById('dbTbody').innerHTML=dbFiltered.map(r=>`
-    <tr>
-      <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;font-weight:600;font-size:10px">${r.nombre}</td>
-      <td><span class="pill ${PM[r.marca]}">${r.marca}</span></td>
-      <td>${r.periodo}</td>
-      <td style="font-weight:700">${mxn(r.ingresos)}</td>
-      <td>${r.uds.toLocaleString()}</td>
-      <td>${mxn(r.ventas_netas)}</td>
-      <td>${r.devol}</td>
-      <td style="color:${C[r.marca]};font-weight:700">${r.share}%</td>
-    </tr>`).join('')+`<tr class="tot"><td colspan="3">TOTAL</td><td>${mxn(tv)}</td><td>${dbFiltered.reduce((s,r)=>s+r.uds,0).toLocaleString()}</td><td>${mxn(dbFiltered.reduce((s,r)=>s+r.ventas_netas,0))}</td><td>${dbFiltered.reduce((s,r)=>s+r.devol,0)}</td><td>—</td></tr>`;
+    <div class="kcard"><div class="kl">Unidades</div><div class="kv">${dbFiltered.reduce((s,r)=>s+r.uds,0).toLocaleString()}</div></div>
+    <div class="kcard"><div class="kl">Ventas netas</div><div class="kv">${mxn(dbFiltered.reduce((s,r)=>s+r.ventas_netas,0))}</div></div>
+    <div class="kcard"><div class="kl">Devoluciones</div><div class="kv">${dbFiltered.reduce((s,r)=>s+r.devol,0)}</div></div>`;
+  document.getElementById('dbTbody').innerHTML=dbFiltered.map(r=>`<tr>
+    <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;font-weight:600;font-size:10px">${r.nombre}</td>
+    <td><span class="pill ${PM[r.marca]}">${r.marca}</span></td>
+    <td>${r.periodo}</td><td style="font-weight:700">${mxn(r.ingresos)}</td>
+    <td>${r.uds.toLocaleString()}</td><td>${mxn(r.ventas_netas)}</td>
+    <td>${r.devol}</td><td style="color:${C[r.marca]};font-weight:700">${r.share}%</td>
+  </tr>`).join('')+`<tr class="tot"><td colspan="3">TOTAL</td><td>${mxn(tv)}</td><td>${dbFiltered.reduce((s,r)=>s+r.uds,0).toLocaleString()}</td><td>${mxn(dbFiltered.reduce((s,r)=>s+r.ventas_netas,0))}</td><td>${dbFiltered.reduce((s,r)=>s+r.devol,0)}</td><td>—</td></tr>`;
 }
-function exportCSV(){
-  const h=['Nombre','ASIN','Marca','Periodo','Ingresos','Unidades','Ventas netas','Devoluciones','Share'];
-  const rows=dbFiltered.map(r=>[r.nombre,r.asin,r.marca,r.periodo,r.ingresos,r.uds,r.ventas_netas,r.devol,r.share].join(','));
-  const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent([h.join(','),...rows].join('\n'));a.download='SanchezMartin_datos.csv';a.click();
-}
-initGeneral();inited.general=true;
-</script></body></html>
+function exportCSV(){const h=['Nombre','ASIN','Marca','Periodo','Ingresos','Unidades','Ventas netas','Devoluciones','Share'];const rows=dbFiltered.map(r=>[r.nombre,r.asin,r.marca,r.periodo,r.ingresos,r.uds,r.ventas_netas,r.devol,r.share].join(','));const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent([h.join(','),...rows].join('\n'));a.download='SanchezMartin.csv';a.click();}
+
+initDashboard();
+</script>
+</body>
+</html>
