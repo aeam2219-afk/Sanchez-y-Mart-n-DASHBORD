@@ -216,7 +216,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#F0F2F5;color:#222;paddi
   <!-- Stock vs Ventas -->
   <div class="g2">
     <div class="card">
-      <div class="ct">Stock vs Ventas (uds) — <span id="sv-lbl" style="color:#888;font-weight:400"></span></div>
+      <div class="ct">Stock vs Ventas (uds) por mes</div>
       <div class="note">Stock disponible (aptas para venta) vs unidades vendidas por ASIN seleccionado.</div>
       <div style="position:relative;height:200px"><canvas id="c-sv"></canvas></div></div>
     <div class="card"><div class="ct">Días de cobertura por ASIN activo</div>
@@ -667,27 +667,40 @@ function renderGenCatCharts(){
 }
 
 // ── VENTAS ──
-function iVen(){
-  renderVen();
-}
+function iVen(){renderVen();}
 function renderVen(){
   kl(['ven-bar','ven-pie']);
   var f=getFilter('ven');
   var cats=f.cat==='all'?D.categorias:[f.cat];
-  var isJunSem=['Jun S1','Jun S2','Jun S3','Jun S4'].indexOf(f.mes)>=0;
-  var labels,catVals,catUds;
-
+  var junSems=['Jun S1','Jun S2','Jun S3','Jun S4','Jun S5'];
+  var julSems=['Jul S1','Jul S2'];
+  var isJunSem=junSems.indexOf(f.mes)>=0;
+  var isJulSem=julSems.indexOf(f.mes)>=0;
+  var periodLbl=f.mes==='all'?'Ene-Jul 2026':f.mes;
+  var piDev=D.periodos.indexOf(f.mes);
+  var totalV=cats.reduce(function(s,c){return s+getVentasCatForPeriod(c,f.mes==='all'?null:f.mes);},0);
+  var totalU=cats.reduce(function(s,c){return s+getUdsCatForPeriod(c,f.mes==='all'?null:f.mes);},0);
+  var grandT=D.categorias.reduce(function(s,c){return s+getVentasCatForPeriod(c,f.mes==='all'?null:f.mes);},0)||1;
+  var totalDev=cats.reduce(function(s,c){return s+D.asins.filter(function(a){return a.categoria===c;}).reduce(function(ss,a){return ss+(piDev>=0&&a.devol_mens?a.devol_mens[piDev]:a.devol_uds);},0);},0);
+  document.getElementById('ven-kpis').innerHTML=
+    '<div class="kcard"><div class="ktt">Ingresos col[6] enviados. Cat: '+(f.cat==='all'?'Todas':f.cat)+' | Periodo: '+periodLbl+'</div><div class="kl">Ingresos</div><div class="kv">'+mxn(totalV)+' MXN</div><div class="kd">'+periodLbl+'</div></div>'+
+    '<div class="kcard"><div class="ktt">Uds vendidas col[7]. Cat: '+(f.cat==='all'?'Todas':f.cat)+' | Periodo: '+periodLbl+'</div><div class="kl">Unidades vendidas</div><div class="kv">'+totalU.toLocaleString()+'</div><div class="kd">uds - '+periodLbl+'</div></div>'+
+    '<div class="kcard"><div class="ktt">Share = Ingresos cat / Total grupo x 100 = '+mxn(totalV)+' / '+mxn(grandT)+' x 100 = '+(totalV/grandT*100).toFixed(1)+'%</div><div class="kl">Share del grupo</div><div class="kv" style="color:#185FA5">'+(totalV/grandT*100).toFixed(1)+'%</div><div class="kd">'+(f.cat==='all'?'todas las categorias':f.cat)+'</div></div>'+
+    '<div class="kcard"><div class="ktt">Devoluciones col[11]. Cat: '+(f.cat==='all'?'Todas':f.cat)+' | Periodo: '+periodLbl+'</div><div class="kl">Devoluciones</div><div class="kv '+(totalDev>50?'bad':totalDev>20?'warn':'good')+'">'+totalDev+' uds</div><div class="kd">'+periodLbl+'</div></div>';
+  var labels,catVals;
   if(f.mes==='all'){
     labels=D.periodos;
-    // Stacked bar per period
-    var datasets=cats.map(function(c,i){
-      return{label:c,...mkB(CAT_COLORS[D.categorias.indexOf(c)]||CAT_COLORS[i]||'#888',D.ventas_cat[c]||[],c)};
-    });
+    var datasets=cats.map(function(c,i){return{label:c,...mkB(CAT_COLORS[D.categorias.indexOf(c)]||CAT_COLORS[i]||'#888',D.ventas_cat[c]||[],c)};});
     ch['ven-bar']=new Chart(document.getElementById('ven-bar'),{type:'bar',data:{labels:labels,datasets:datasets},options:{...bo,scales:{x:{grid:{display:false},ticks:{font:{size:9},autoSkip:false}},y:{grid:{color:gc},stacked:true,ticks:{font:{size:9},callback:function(v){return'$'+numK(v);}}}},plugins:{legend:{display:true,labels:{font:{size:8},boxWidth:8,padding:5}}}}});
-    document.getElementById('ven-ct-lbl').textContent='Ene–Jul 2026';
+    document.getElementById('ven-ct-lbl').textContent='Ene-Jul 2026';
   } else if(isJunSem){
-    var si=['Jun S1','Jun S2','Jun S3','Jun S4'].indexOf(f.mes);
+    var si=junSems.indexOf(f.mes);
     catVals=cats.map(function(c){return D.ventas_cat_jun_sem&&D.ventas_cat_jun_sem[c]?D.ventas_cat_jun_sem[c][si]||0:0;});
+    ch['ven-bar']=new Chart(document.getElementById('ven-bar'),{type:'bar',data:{labels:cats,datasets:[{label:'Ingresos',data:catVals,backgroundColor:cats.map(function(c){return CAT_COLORS_MAP[c]||'#888';}),borderRadius:3}]},options:{...bo,indexAxis:'y',scales:{x:{grid:{color:gc},ticks:{font:{size:9},callback:function(v){return'$'+numK(v);}}},y:{grid:{display:false},ticks:{font:{size:8}}}}}});
+    document.getElementById('ven-ct-lbl').textContent=f.mes;
+  } else if(isJulSem){
+    var si=julSems.indexOf(f.mes);
+    catVals=cats.map(function(c){return D.ventas_cat_jul_sem&&D.ventas_cat_jul_sem[c]?D.ventas_cat_jul_sem[c][si]||0:0;});
     ch['ven-bar']=new Chart(document.getElementById('ven-bar'),{type:'bar',data:{labels:cats,datasets:[{label:'Ingresos',data:catVals,backgroundColor:cats.map(function(c){return CAT_COLORS_MAP[c]||'#888';}),borderRadius:3}]},options:{...bo,indexAxis:'y',scales:{x:{grid:{color:gc},ticks:{font:{size:9},callback:function(v){return'$'+numK(v);}}},y:{grid:{display:false},ticks:{font:{size:8}}}}}});
     document.getElementById('ven-ct-lbl').textContent=f.mes;
   } else {
@@ -696,7 +709,6 @@ function renderVen(){
     ch['ven-bar']=new Chart(document.getElementById('ven-bar'),{type:'bar',data:{labels:cats,datasets:[{label:'Ingresos',data:catVals,backgroundColor:cats.map(function(c){return CAT_COLORS_MAP[c]||'#888';}),borderRadius:3}]},options:{...bo,indexAxis:'y',scales:{x:{grid:{color:gc},ticks:{font:{size:9},callback:function(v){return'$'+numK(v);}}},y:{grid:{display:false},ticks:{font:{size:8}}}}}});
     document.getElementById('ven-ct-lbl').textContent=f.mes;
   }
-
   // Pie share
   var pieVals=cats.map(function(c){return getVentasCatForPeriod(c,f.mes==='all'?null:f.mes);});
   var grand=pieVals.reduce(function(a,c){return a+c;},0)||1;
@@ -731,7 +743,7 @@ function renderInv(){
   rows=rows.map(function(a){
     var stock,vd,lbl;
     var junSems=['Jun S1','Jun S2','Jun S3','Jun S4'];
-    if(!f.mes||f.mes==='all'){stock=a.stock_actual;vd=a.venta_diaria;lbl='Último dato';}
+    if(!f.mes||f.mes==='all'){stock=a.stock_actual;vd=a.venta_diaria;lbl='';}
     else if(junSems.indexOf(f.mes)>=0){
       var si=junSems.indexOf(f.mes);
       stock=(a.stock_jun_sem&&a.stock_jun_sem[si])||0;
@@ -746,18 +758,17 @@ function renderInv(){
   rows=[...rows].sort(function(a,b){return a._d-b._d;});
 
   var totalStock=rows.reduce(function(s,a){return s+a._s;},0);
-  var urgentes=rows.filter(function(a){return a._vd>0&&a._d<30;}).length;
+  var urgentes=rows.filter(function(a){return a._vd>0&&a._d<7;}).length;
   document.getElementById('inv-kpis').innerHTML=
     '<div class="kcard"><div class="ktt">Stock total = suma de uds disponibles aptas para venta (col[15])</div><div class="kl">Stock total</div><div class="kv">'+totalStock.toLocaleString()+'</div><div class="kd">uds aptas para venta</div></div>'+
-    '<div class="kcard"><div class="ktt">ASINs con menos de 30 días de cobertura basado en venta diaria prom.</div><div class="kl">Urge resurtir</div><div class="kv '+(urgentes>0?'bad':'good')+'">'+urgentes+'</div><div class="kd">ASINs &lt; 30 días cobertura</div></div>'+
-    '<div class="kcard"><div class="kl">ASINs activos</div><div class="kv">'+rows.filter(function(a){return a._vd>0;}).length+'</div><div class="kd">con venta reciente</div></div>'+
-    '<div class="kcard"><div class="kl">Periodo</div><div class="kv" style="font-size:13px">'+(rows[0]?rows[0]._lbl:'—')+'</div><div class="kd">base del cálculo</div></div>';
+    '<div class="kcard"><div class="ktt">ASINs con menos de 7 días de cobertura basado en venta diaria prom.</div><div class="kl">Urge resurtir</div><div class="kv '+(urgentes>0?'bad':'good')+'">'+urgentes+'</div><div class="kd">ASINs &lt; 7 días cobertura</div></div>'+
+    '<div class="kcard"><div class="kl">ASINs activos</div><div class="kv">'+rows.filter(function(a){return a._vd>0;}).length+'</div><div class="kd">con venta reciente</div></div>';
 
   document.getElementById('inv-cnt').textContent=rows.length+' ASINs · '+(rows[0]?rows[0]._lbl:'');
   document.getElementById('inv-body').innerHTML=rows.map(function(a){
     var dcls=a._vd===0&&a._s===0?'':a._d<30?'bad':a._d<60?'warn':'good';
     var dLbl=a._s===0&&a._vd===0?'— Sin actividad':a._d>=999?'999+ días':a._d.toFixed(1)+' días';
-    var dEst=a._s===0&&a._vd===0?'<span style="color:#aaa">Sin actividad</span>':a._d<30?'<span class="bad">⚠ Urge resurtir</span>':a._d<60?'<span class="warn">● Atención</span>':'<span class="good">✓ Saludable</span>';
+    var dEst=a._s===0&&a._vd===0?'<span style="color:#aaa">Sin actividad</span>':a._d<7?'<span class="bad">⚠ Urge resurtir</span>':a._d<60?'<span class="warn">● Atención</span>':'<span class="good">✓ Saludable</span>';
     return '<tr>'+
       '<td class="l"><div style="font-weight:600;font-size:10px;max-width:200px;overflow:hidden;text-overflow:ellipsis">'+a.nombre+'</div><div style="font-size:9px;color:#888">'+a.asin+'</div></td>'+
       '<td class="l" style="font-size:10px;color:#555">'+a.categoria+'</td>'+
@@ -768,29 +779,25 @@ function renderInv(){
   // Días chart
   kl(['c-dias']);
   var activos=[...rows].filter(function(a){return a._vd>0&&a._d<999;}).slice(0,12);
-  ch['c-dias']=new Chart(document.getElementById('c-dias'),{type:'bar',data:{labels:activos.map(function(a){return a.nombre.substring(0,16);}),datasets:[{label:'Días',data:activos.map(function(a){return a._d;}),backgroundColor:activos.map(function(a){return a._d<30?'#E24B4A99':a._d<60?'#F59E0B99':'#1D9E7599';}),borderRadius:3}]},options:{...bo,indexAxis:'y',scales:{x:{grid:{color:gc},ticks:{font:{size:9}}},y:{grid:{display:false},ticks:{font:{size:8}}}}}});
+  ch['c-dias']=new Chart(document.getElementById('c-dias'),{type:'bar',data:{labels:activos.map(function(a){return a.nombre.substring(0,16);}),datasets:[{label:'Días',data:activos.map(function(a){return a._d;}),backgroundColor:activos.map(function(a){return a._d<7?'#E24B4A99':a._d<14?'#F59E0B99':'#1D9E7599';}),borderRadius:3}]},options:{...bo,indexAxis:'y',scales:{x:{grid:{color:gc},ticks:{font:{size:9}}},y:{grid:{display:false},ticks:{font:{size:8}}}}}});
 }
 function renderSV(){
   kl(['c-sv']);
   var f=getFilter('inv');
-  var rows=D.asins.filter(function(a){return f.cat==='all'||a.categoria===f.cat;});
+  var a=null;
   if(f.asin&&f.asin!=='all'){
-    var a=D.asins.find(function(x){return x.asin===f.asin;});
-    if(a){
-      document.getElementById('sv-lbl').textContent=a.nombre.substring(0,35);
-      ch['c-sv']=new Chart(document.getElementById('c-sv'),{type:'bar',data:{labels:D.periodos,datasets:[{label:'Stock aptas venta',...mkB('#185FA5',a.stock_mens)},{label:'Ventas (uds)',...mkB('#D85A30',a.uds_mens)}]},options:{...bo,scales:sc(),plugins:lgnd()}});
-    }
-  } else if(rows.length>0){
-    // Show first or all aggregated by category
-    var cat=f.cat!=='all'?f.cat:D.categorias[0];
-    var catRows=rows.filter(function(a){return a.categoria===cat;}).slice(0,1);
-    if(catRows.length>0){
-      var a=catRows[0];
-      document.getElementById('sv-lbl').textContent=a.nombre.substring(0,35);
-      ch['c-sv']=new Chart(document.getElementById('c-sv'),{type:'bar',data:{labels:D.periodos,datasets:[{label:'Stock aptas venta',...mkB('#185FA5',a.stock_mens)},{label:'Ventas (uds)',...mkB('#D85A30',a.uds_mens)}]},options:{...bo,scales:sc(),plugins:lgnd()}});
-    }
+    a=D.asins.find(function(x){return x.asin===f.asin;});
   }
+  if(!a){
+    var cat=f.cat!=='all'?f.cat:D.categorias[0];
+    var catRows=D.asins.filter(function(x){return x.categoria===cat&&x.venta_diaria>0;});
+    a=catRows.length>0?catRows[0]:D.asins.filter(function(x){return x.venta_diaria>0;})[0];
+  }
+  if(!a) return;
+  ch['c-sv']=new Chart(document.getElementById('c-sv'),{type:'bar',data:{labels:D.periodos,datasets:[{label:'Stock aptas venta',...mkB('#185FA5',a.stock_mens)},{label:'Ventas (uds)',...mkB('#D85A30',a.uds_mens)}]},options:{...bo,scales:sc(),plugins:lgnd()}});
 }
+
+
 
 // ── PRONÓSTICOS ──
 function iPron(){
@@ -801,30 +808,46 @@ function iPron(){
   var cumpl=Math.round(tPM/meta*100);
   var venUlt=D.periodos.reduce(function(s,p,i){return s+D.categorias.reduce(function(ss,c){return ss+(D.ventas_cat[c]?D.ventas_cat[c][i]:0);},0);},0)/6;
 
-  var ventasRealesMes=D.periodos.reduce(function(s,p,i){return s+D.categorias.reduce(function(ss,c){return ss+(D.ventas_cat[c]?D.ventas_cat[c][i]:0);},0);},0)/6;
+  // Ventas reales promedio mensual de las categorías filtradas
+  var cats3=f.cat==='all'?D.categorias:[f.cat];
+  var nMeses=D.periodos.length;
+  // Suma total de ventas de las categorías en todos los meses, dividido entre nMeses
+  var totalVentasReales=cats3.reduce(function(s,c){
+    return s+D.periodos.reduce(function(ss,p,i){return ss+(D.ventas_cat[c]?D.ventas_cat[c][i]:0);},0);
+  },0);
+  var ventasRealesMes=totalVentasReales/nMeses;
   var cumplVentas=Math.round(ventasRealesMes/meta*100);
-  document.getElementById('pron-kpis').innerHTML=
-    '<div class="kcard"><div class="ktt">Meta mensual fija = $1,000,000 MXN\nDefinida por la empresa como objetivo mensual de ingresos</div><div class="kl">Meta mensual</div><div class="kv">'+mxn(meta)+'</div><div class="kd">objetivo fijo mensual</div></div>'+
-    '<div class="kcard"><div class="ktt">Pronóstico = venta diaria prom. (Abr+May+Jun, 80 días) × 30\nCategoria: '+(f.cat==='all'?'Todas':f.cat)+'</div><div class="kl">Pronóst. mensual</div><div class="kv">'+mxn(tPM)+'</div><div class="kd">MXN esperados próx. mes</div></div>'+
-    '<div class="kcard"><div class="ktt">Cumplimiento = Ventas reales prom. mensual / Meta × 100\n= '+mxn(Math.round(ventasRealesMes))+' prom./mes / '+mxn(meta)+' × 100 = '+cumplVentas+'%\n(Prom. de los 6 meses Ene–Jun vs meta $1M)</div><div class="kl">Cumpl. ventas vs meta</div><div class="kv '+(cumplVentas>=100?'good':cumplVentas>=70?'warn':'bad')+'">'+cumplVentas+'%</div><div class="kd">ventas reales prom. / meta</div></div>'+
-    '<div class="kcard"><div class="ktt">Pronóstico próx. mes vs meta $1,000,000\n= '+mxn(tPM)+' / '+mxn(meta)+' × 100 = '+cumpl+'%</div><div class="kl">Cumpl. pronóst. vs meta</div><div class="kv '+(cumpl>=100?'good':cumpl>=70?'warn':'bad')+'">'+cumpl+'%</div><div class="kd">pronóstico / meta</div></div>';
+  var catStr=f.cat==='all'?'Todas las categorias':f.cat;
+  // Desglose por categoria para el tooltip
+  var detalleCats=cats3.map(function(c){
+    var vt=D.periodos.reduce(function(ss,p,i){return ss+(D.ventas_cat[c]?D.ventas_cat[c][i]:0);},0);
+    return c.substring(0,25)+': '+mxn(vt);
+  }).join('\\n  ');
 
-  // Cumplimiento bars por categoría
+  document.getElementById('pron-kpis').innerHTML=
+    '<div class="kcard"><div class="ktt">Meta fija definida por la empresa.\\nNo cambia con ningun filtro.</div><div class="kl">Meta mensual (fija)</div><div class="kv">'+mxn(meta)+'</div><div class="kd">objetivo fijo mensual</div></div>'+
+    '<div class="kcard"><div class="ktt">Pronostico = venta diaria prom. (May+Jun+Jul, 90 dias) x 30\\nCategoria: '+catStr+'</div><div class="kl">Pronost. mensual</div><div class="kv">'+mxn(tPM)+'</div><div class="kd">'+catStr+'</div></div>'+
+    '<div class="kcard"><div class="ktt">Como se calcula este %:\\n\\nPaso 1: Sumar ventas reales de '+catStr+'\\n  en todos los meses ('+nMeses+' meses disponibles):\\n  '+detalleCats+'\\n  Total: '+mxn(Math.round(totalVentasReales))+'\\n\\nPaso 2: Calcular promedio mensual:\\n  '+mxn(Math.round(totalVentasReales))+' / '+nMeses+' meses = '+mxn(Math.round(ventasRealesMes))+'/mes\\n\\nPaso 3: Dividir entre la meta y multiplicar x 100:\\n  '+mxn(Math.round(ventasRealesMes))+' / $1,000,000 x 100 = '+cumplVentas+'%\\n\\nInterpretacion: en promedio se vendio el '+cumplVentas+'%\\nde la meta mensual en el periodo analizado.</div><div class="kl">Cumpl. ventas vs meta</div><div class="kv '+(cumplVentas>=100?'good':cumplVentas>=70?'warn':'bad')+'">'+cumplVentas+'%</div><div class="kd">ventas reales prom. / meta</div></div>'+
+    '<div class="kcard"><div class="ktt">Pronostico proximo mes vs meta:\\n'+mxn(tPM)+' / $1,000,000 x 100 = '+cumpl+'%\\n\\nSi las tendencias actuales (May+Jun+Jul) continuan,\\nse espera alcanzar el '+cumpl+'% de la meta el proximo mes.</div><div class="kl">Cumpl. pronost. vs meta</div><div class="kv '+(cumpl>=100?'good':cumpl>=70?'warn':'bad')+'">'+cumpl+'%</div><div class="kd">pronostico / meta</div></div>';
+
+  // Barras de cumplimiento por categoria — cada categoria vs la meta TOTAL $1M
+  // (no contra meta/8 categorias — la meta es del grupo completo)
   var catBars=D.categorias.map(function(c){
     var catRows=D.asins.filter(function(a){return a.categoria===c;});
     var catPron=catRows.reduce(function(s,a){return s+a.pron_mxn;},0);
-    var catReal=D.periodos.reduce(function(s,p,i){return s+(D.ventas_cat[c]?D.ventas_cat[c][i]:0);},0)/6;
-    var pct=Math.min(catPron/(meta/D.categorias.length)*100,150);
-    var col=pct>=100?'#1D9E75':pct>=70?'#F59E0B':'#E24B4A';
-    return{c:c,pron:catPron,pct:pct,col:col};
-  }).filter(function(x){return x.pron>0;});
+    var catVentasReales=D.periodos.reduce(function(s,p,i){return s+(D.ventas_cat[c]?D.ventas_cat[c][i]:0);},0)/nMeses;
+    // % = ventas reales promedio de esta categoria / meta total x 100
+    var pct=Math.min(catVentasReales/meta*100,150);
+    var col=pct>=100?'#1D9E75':pct>=30?'#F59E0B':'#E24B4A';
+    return{c:c,pron:catPron,catReal:Math.round(catVentasReales),pct:pct,col:col};
+  }).filter(function(x){return x.catReal>0||x.pron>0;});
   document.getElementById('pron-barras').innerHTML=catBars.map(function(b){
     return '<div style="margin-bottom:8px">'+
       '<div style="display:flex;justify-content:space-between;font-size:10px;margin-bottom:2px">'+
       '<span style="font-weight:600">'+b.c+'</span>'+
       '<span style="font-weight:700;color:'+b.col+'">'+b.pct.toFixed(0)+'%</span></div>'+
       '<div style="display:flex;align-items:center;gap:7px"><div class="pw"><div class="pf" style="width:'+Math.min(b.pct,100)+'%;background:'+b.col+'"></div></div>'+
-      '<span style="font-size:9px;color:#888;white-space:nowrap">'+mxn(b.pron)+'</span></div></div>';
+      '<span style="font-size:9px;color:#888;white-space:nowrap">prom. '+mxn(b.catReal)+'/mes</span></div></div>';
   }).join('');
 
   // Chart pronóstico
@@ -907,8 +930,9 @@ function iDev(){
   var tVend=rows.reduce(function(s,a){return s+a.uds_total;},0);
   var tasa=tVend>0?(tU/tVend*100).toFixed(2):'0.00';
   var devProd=rows.filter(function(a){return a.devol_uds>0;}).length;
+  var periodLblDev=f.mes==='all'?'Ene-Jul 2026':f.mes;
   document.getElementById('dev-kpis').innerHTML=
-    '<div class="kcard"><div class="ktt">Total uds devueltas = suma col[11] "Cantidad de devoluciones"\nCategoría: '+(f.cat==='all'?'Todas':f.cat)+'</div><div class="kl">Total devoluciones</div><div class="kv bad">'+tU.toLocaleString()+' uds</div><div class="kd">Ene–Jul 2026</div></div>'+
+    '<div class="kcard"><div class="ktt">Total uds devueltas = suma col[11]\nCategoria: '+(f.cat==='all'?'Todas':f.cat)+' | Periodo: '+periodLblDev+'</div><div class="kl">Total devoluciones</div><div class="kv bad">'+tU.toLocaleString()+' uds</div><div class="kd">'+periodLblDev+'</div></div>'+
     '<div class="kcard"><div class="ktt">Tasa = uds devueltas / uds vendidas × 100\n= '+tU+' / '+tVend.toLocaleString()+' × 100 = '+tasa+'%</div><div class="kl">% sobre ventas</div><div class="kv">'+tasa+'%</div><div class="kd">tasa de devolución</div></div>'+
     '<div class="kcard"><div class="ktt">Productos con al menos 1 devolución en el periodo</div><div class="kl">Productos devueltos</div><div class="kv">'+devProd+'</div><div class="kd">de '+rows.length+' ASINs</div></div>'+
     '<div class="kcard"><div class="ktt">Monto estimado = uds devueltas × precio prom. del ASIN\nNo es el monto real acreditado por Amazon</div><div class="kl">Monto devuelto</div><div class="kv bad">'+mxn(tM)+' MXN</div><div class="kd">estimado</div></div>';
