@@ -400,12 +400,12 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#F0F2F5;color:#222;paddi
   </div>
   <div class="sec">ACOS por categoría vs límite</div>
   <div class="card">
-    <p class="note">ACOS = % del gasto en ads sobre las ventas generadas. Menor = mejor. Rojo = supera el límite.</p>
+    <p class="note">ACOS = referencia interna (gasto ads / ventas ads). TACoS = gasto ads / ventas totales — este es el indicador que se compara contra el límite. El estado EXCEDE/DENTRO refleja TACoS vs límite.</p>
     <div class="tbl-wrap"><table class="tbl">
       <thead><tr>
         <th class="l">Categoría</th>
         <th>Límite</th>
-        <th>ACOS actual (cuenta)</th>
+        <th>ACOS (referencia)</th>
         <th>TACoS</th>
         <th>Estado</th>
         <th>Barra</th>
@@ -1444,8 +1444,8 @@ function initAds(){
       '<td style="text-align:center;font-weight:700;color:'+color+'">'+(actual!==null?actual+'%':'Sin datos')+'</td>'+
       '<td style="text-align:center;font-weight:700;color:'+tacosColor+'">'+(tacos!==null?tacos+'%':'—')+'</td>'+
       '<td style="text-align:center">'+
-        (actual===null?'<span style="color:#aaa">—</span>':
-         ok?'<span style="background:#EAF3DE;color:#1D9E75;padding:2px 10px;border-radius:12px;font-size:10px;font-weight:700">✓ DENTRO</span>':
+        (barVal===null?'<span style="color:#aaa">—</span>':
+         barOk?'<span style="background:#EAF3DE;color:#1D9E75;padding:2px 10px;border-radius:12px;font-size:10px;font-weight:700">✓ DENTRO</span>':
             '<span style="background:#FDECEA;color:#E24B4A;padding:2px 10px;border-radius:12px;font-size:10px;font-weight:700">✗ EXCEDE</span>')+
       '</td>'+
       '<td style="min-width:140px;padding:4px 8px">'+
