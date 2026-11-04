@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -122,7 +121,8 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#F0F2F5;color:#222;paddi
   <div class="last-upd">Jul 2026</div>
 </div>
 <nav class="nav-top">
-  <button class="ntab on" onclick="go('general',this)">General</button>
+  <button class="ntab on" onclick="go('semanaS5',this)">📋 Semana S5</button>
+  <button class="ntab" onclick="go('general',this)">General</button>
   <button class="ntab" onclick="go('ventas',this)">Ventas</button>
   <button class="ntab" onclick="go('inventario',this)">Inventario</button>
   <button class="ntab" onclick="go('pronosticos',this)">Pronósticos</button>
@@ -134,8 +134,232 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#F0F2F5;color:#222;paddi
 </nav>
 <div class="content">
 
+<!-- ══ SEMANA S5 ══ -->
+<div id="p-semanaS5" class="sp on">
+<style>
+.s5-wrap{max-width:900px;margin:0 auto;padding:20px 16px 40px;}
+.s5-header{background:linear-gradient(135deg,#1e3a5f,#2563eb);color:#fff;border-radius:14px;padding:24px 28px;margin-bottom:24px;}
+.s5-header h2{margin:0 0 4px;font-size:1.5rem;font-weight:700;}
+.s5-header p{margin:0;opacity:.85;font-size:.9rem;}
+.s5-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px;margin-bottom:22px;}
+.s5-kpi{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:16px 18px;box-shadow:0 1px 4px rgba(0,0,0,.06);}
+.s5-kpi .kpi-label{font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;color:#64748b;margin-bottom:4px;}
+.s5-kpi .kpi-val{font-size:1.45rem;font-weight:700;color:#1e293b;line-height:1.1;}
+.s5-kpi .kpi-sub{font-size:.75rem;color:#94a3b8;margin-top:3px;}
+.s5-kpi.accent{border-top:3px solid #2563eb;}
+.s5-kpi.green{border-top:3px solid #16a34a;}
+.s5-kpi.orange{border-top:3px solid #ea580c;}
+.s5-section{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:20px 22px;margin-bottom:18px;box-shadow:0 1px 4px rgba(0,0,0,.06);}
+.s5-section h3{margin:0 0 14px;font-size:1rem;font-weight:700;color:#1e293b;display:flex;align-items:center;gap:7px;}
+.s5-top-table{width:100%;border-collapse:collapse;font-size:.82rem;}
+.s5-top-table th{background:#f8fafc;color:#475569;font-weight:600;padding:7px 10px;text-align:left;border-bottom:2px solid #e2e8f0;}
+.s5-top-table td{padding:7px 10px;border-bottom:1px solid #f1f5f9;color:#334155;}
+.s5-top-table tr:last-child td{border-bottom:none;}
+.s5-top-table .num{text-align:right;font-variant-numeric:tabular-nums;}
+.s5-top-table .rank{color:#94a3b8;font-size:.78rem;}
+.s5-cats{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;}
+.s5-cat-row{display:flex;align-items:center;gap:10px;padding:8px 10px;background:#f8fafc;border-radius:8px;}
+.s5-cat-bar-wrap{flex:1;height:7px;background:#e2e8f0;border-radius:4px;overflow:hidden;}
+.s5-cat-bar{height:100%;background:#2563eb;border-radius:4px;}
+.s5-cat-name{font-size:.78rem;color:#475569;min-width:130px;}
+.s5-cat-pct{font-size:.78rem;font-weight:700;color:#1e293b;min-width:36px;text-align:right;}
+.s5-cat-amt{font-size:.72rem;color:#94a3b8;}
+.s5-ads-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;}
+.s5-ads-kpi{background:#f8fafc;border-radius:10px;padding:12px 14px;text-align:center;}
+.s5-ads-kpi .ak-val{font-size:1.3rem;font-weight:700;color:#1e293b;}
+.s5-ads-kpi .ak-label{font-size:.72rem;color:#64748b;margin-top:3px;}
+.s5-alerts{display:flex;flex-direction:column;gap:10px;}
+.s5-alert{display:flex;align-items:flex-start;gap:12px;padding:12px 14px;border-radius:10px;font-size:.83rem;}
+.s5-alert.red{background:#fef2f2;border-left:4px solid #ef4444;color:#991b1b;}
+.s5-alert.yellow{background:#fffbeb;border-left:4px solid #f59e0b;color:#92400e;}
+.s5-alert.blue{background:#eff6ff;border-left:4px solid #2563eb;color:#1e40af;}
+.s5-alert .a-icon{font-size:1.1rem;line-height:1.3;}
+.s5-alert .a-body strong{display:block;font-weight:700;margin-bottom:2px;}
+.s5-alert .a-body span{opacity:.85;}
+.s5-meta{display:flex;justify-content:space-between;align-items:center;margin-top:10px;padding-top:12px;border-top:1px solid #f1f5f9;font-size:.72rem;color:#94a3b8;}
+.s5-progress-wrap{background:#e2e8f0;border-radius:6px;height:10px;margin:10px 0 4px;overflow:hidden;}
+.s5-progress-bar{height:100%;border-radius:6px;background:linear-gradient(90deg,#2563eb,#7c3aed);}
+</style>
+<div class="s5-wrap">
+
+  <!-- Header -->
+  <div class="s5-header">
+    <h2>📋 Resumen Semanal — S5 Octubre 2026</h2>
+    <p>26 – 31 de Octubre &nbsp;·&nbsp; Sánchez &amp; Martín &nbsp;·&nbsp; Datos de Vendor Central</p>
+  </div>
+
+  <!-- KPIs principales -->
+  <div class="s5-kpis">
+    <div class="s5-kpi accent">
+      <div class="kpi-label">Ventas S5</div>
+      <div class="kpi-val">$163,494</div>
+      <div class="kpi-sub">MXN · 2,352 unidades</div>
+    </div>
+    <div class="s5-kpi green">
+      <div class="kpi-label">Acumulado Octubre</div>
+      <div class="kpi-val">$733,414</div>
+      <div class="kpi-sub">MXN · 10,065 unidades</div>
+    </div>
+    <div class="s5-kpi orange">
+      <div class="kpi-label">Avance vs Meta</div>
+      <div class="kpi-val">73.3%</div>
+      <div class="kpi-sub">de $1,000,000 MXN</div>
+    </div>
+    <div class="s5-kpi">
+      <div class="kpi-label">TACOS Octubre</div>
+      <div class="kpi-val">1.03%</div>
+      <div class="kpi-sub">Gasto: $7,547 MXN</div>
+    </div>
+    <div class="s5-kpi">
+      <div class="kpi-label">ACOS Octubre</div>
+      <div class="kpi-val">5.4%</div>
+      <div class="kpi-sub">Ventas ads: $140,981</div>
+    </div>
+  </div>
+
+  <!-- Barra de progreso meta -->
+  <div class="s5-section" style="padding:16px 22px;">
+    <div style="display:flex;justify-content:space-between;font-size:.82rem;color:#475569;font-weight:600;">
+      <span>Progreso Octubre hacia meta $1,000,000</span>
+      <span style="color:#2563eb;">73.3% · faltan $266,586</span>
+    </div>
+    <div class="s5-progress-wrap"><div class="s5-progress-bar" style="width:73.3%"></div></div>
+    <div style="font-size:.73rem;color:#94a3b8;">Noviembre inicia con un volumen acumulado sólido; pendiente confirmar si la meta es mensual o sigue en curso.</div>
+  </div>
+
+  <!-- Top 5 productos S5 -->
+  <div class="s5-section">
+    <h3>🏆 Top 5 Productos — Semana S5</h3>
+    <table class="s5-top-table">
+      <thead>
+        <tr><th>#</th><th>Producto</th><th class="num">Ventas MXN</th><th class="num">Uds</th></tr>
+      </thead>
+      <tbody>
+        <tr><td class="rank">1</td><td>Jabón Tocador Lirio Neutro 14pz</td><td class="num">$37,848</td><td class="num">234</td></tr>
+        <tr><td class="rank">2</td><td>Suavizante Bold 3 Suave Frescura Azul 3L</td><td class="num">$15,619</td><td class="num">243</td></tr>
+        <tr><td class="rank">3</td><td>Det Polvo Bold 3 Cariñitos 4.5 kg</td><td class="num">$14,934</td><td class="num">105</td></tr>
+        <tr><td class="rank">4</td><td>Det Líq Bold 3 Aromas Primavera 4.23L</td><td class="num">$13,443</td><td class="num">122</td></tr>
+        <tr><td class="rank">5</td><td>Bold 3 Suavizante Flores 3L</td><td class="num">$11,114</td><td class="num">173</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Categorías Octubre completo -->
+  <div class="s5-section">
+    <h3>📂 Ventas por Categoría — Octubre Completo</h3>
+    <div class="s5-cats">
+      <div class="s5-cat-row"><span class="s5-cat-name">Tocador</span><div class="s5-cat-bar-wrap"><div class="s5-cat-bar" style="width:39%"></div></div><span class="s5-cat-pct">39%</span></div>
+      <div class="s5-cat-row"><span class="s5-cat-name">Det Ropa</span><div class="s5-cat-bar-wrap"><div class="s5-cat-bar" style="width:16%"></div></div><span class="s5-cat-pct">16%</span></div>
+      <div class="s5-cat-row"><span class="s5-cat-name">Suavizantes</span><div class="s5-cat-bar-wrap"><div class="s5-cat-bar" style="width:15%"></div></div><span class="s5-cat-pct">15%</span></div>
+      <div class="s5-cat-row"><span class="s5-cat-name">Det Ropa Liq</span><div class="s5-cat-bar-wrap"><div class="s5-cat-bar" style="width:15%"></div></div><span class="s5-cat-pct">15%</span></div>
+      <div class="s5-cat-row"><span class="s5-cat-name">Tocador Liq Manos</span><div class="s5-cat-bar-wrap"><div class="s5-cat-bar" style="width:6%"></div></div><span class="s5-cat-pct">6%</span></div>
+      <div class="s5-cat-row"><span class="s5-cat-name">Lavandería</span><div class="s5-cat-bar-wrap"><div class="s5-cat-bar" style="width:4%"></div></div><span class="s5-cat-pct">4%</span></div>
+      <div class="s5-cat-row"><span class="s5-cat-name">Tocador Liq Corporal</span><div class="s5-cat-bar-wrap"><div class="s5-cat-bar" style="width:3%"></div></div><span class="s5-cat-pct">3%</span></div>
+      <div class="s5-cat-row"><span class="s5-cat-name">Multiusos</span><div class="s5-cat-bar-wrap"><div class="s5-cat-bar" style="width:1%"></div></div><span class="s5-cat-pct">&lt;1%</span></div>
+    </div>
+    <div style="margin-top:12px;font-size:.77rem;color:#64748b;">
+      Tocador: $289,220 &nbsp;|&nbsp; Det Ropa: $116,477 &nbsp;|&nbsp; Suavizantes: $112,743 &nbsp;|&nbsp; Det Ropa Liq: $112,049 &nbsp;|&nbsp; Liq Manos: $46,108 &nbsp;|&nbsp; Lavandería: $28,328 &nbsp;|&nbsp; Liq Corporal: $24,973 &nbsp;|&nbsp; Multiusos: $3,595
+    </div>
+  </div>
+
+  <!-- ADS -->
+  <div class="s5-section">
+    <h3>📢 Eficiencia ADS — Octubre Completo</h3>
+    <div class="s5-ads-grid">
+      <div class="s5-ads-kpi"><div class="ak-val">$7,547</div><div class="ak-label">Gasto ADS (MXN)</div></div>
+      <div class="s5-ads-kpi"><div class="ak-val">$140,981</div><div class="ak-label">Ventas ADS (MXN)</div></div>
+      <div class="s5-ads-kpi"><div class="ak-val">5.4%</div><div class="ak-label">ACOS</div></div>
+      <div class="s5-ads-kpi"><div class="ak-val">1.03%</div><div class="ak-label">TACOS</div></div>
+      <div class="s5-ads-kpi"><div class="ak-val">18.7x</div><div class="ak-label">ROAS</div></div>
+    </div>
+    <div style="margin-top:12px;font-size:.77rem;color:#16a34a;font-weight:600;">✓ ACOS 5.4% — muy eficiente. Ads generando $18.7 en ventas por cada $1 invertido.</div>
+  </div>
+
+  <!-- ALERTAS OPERATIVAS -->
+  <div class="s5-section">
+    <h3>🚨 Alertas Operativas</h3>
+    <div class="s5-alerts">
+
+      <!-- Stock crítico -->
+      <div class="s5-alert red">
+        <span class="a-icon">🔴</span>
+        <div class="a-body">
+          <strong>URGE RESURTIR — Util Multiusos Antibacterial 5 kg (B09FDGN25N)</strong>
+          <span>100% agotado en Vendor Central (0 unidades enviadas en última semana). Sin stock visible ni OC abierta confirmada. Acción inmediata.</span>
+        </div>
+      </div>
+
+      <div class="s5-alert red">
+        <span class="a-icon">🔴</span>
+        <div class="a-body">
+          <strong>URGE RESURTIR — Util Multiusos Ultra Aroma 5 kg (B0FB3S8Q9W)</strong>
+          <span>100% agotado en Vendor Central. Sin unidades enviadas. Revisar urgente.</span>
+        </div>
+      </div>
+
+      <div class="s5-alert yellow">
+        <span class="a-icon">🟡</span>
+        <div class="a-body">
+          <strong>STOCK BAJO — Lirio B&amp;S Fragancia Bosque 400 mL (B0B7SK4R68)</strong>
+          <span>100% agotado en datos más recientes. Verificar si tiene OC activa pendiente de envío.</span>
+        </div>
+      </div>
+
+      <div class="s5-alert yellow">
+        <span class="a-icon">🟡</span>
+        <div class="a-body">
+          <strong>STOCK BAJO — Jabón Tocador Lirio Neutro 14pz (B0CTHV6QRN)</strong>
+          <span>100% agotado y producto top de ventas (1er lugar S5: $37,848). Priorizar resurtido urgente.</span>
+        </div>
+      </div>
+
+      <!-- Items no aceptados en OCs -->
+      <div class="s5-alert yellow">
+        <span class="a-icon">⚠️</span>
+        <div class="a-body">
+          <strong>NO SE HAN ACEPTADO — OC 4E8Q26TD &amp; 34TNIMPK (múltiples SKUs)</strong>
+          <span>Varias líneas con cantidad aceptada = 0 en las OCs más recientes. Productos afectados: Det Bold 800g (162 uds), Det Bold 4.5 kg (83 uds), Det Liq Quitamanchas 4.23L (56+80 uds), Det Liq Aromas Primavera (24+4 uds), Lirio SG Neutro 400mL (84+132 uds), Lirio Clean&Pure Granada 1L (60+220 uds), Lirio Clean&Pure Granada 500ml (24+48 uds), Lirio Shower Gel 400ml (24+48 uds), Det Bold Cariñitos 800g, Lirio Derm 14pz (384 uds), Bold Suavizante Flores 3L ROSA (108 uds). Verificar en Vendor Central si hay rechazo o ajuste pendiente de aceptación por Amazon.</span>
+        </div>
+      </div>
+
+      <div class="s5-alert yellow">
+        <span class="a-icon">⚠️</span>
+        <div class="a-body">
+          <strong>NO SE HAN ACEPTADO — Lirio Neutro 150g 4 Piezas (recurrente)</strong>
+          <span>Aparece con Acep:0 en 4 OCs distintas (6BQEW2DB, 5WXB54RK, 48CPWZKP, 6OA55DKW). Total sin aceptar: ~204 uds. Revisar si hay bloqueo de producto en Amazon.</span>
+        </div>
+      </div>
+
+      <div class="s5-alert yellow">
+        <span class="a-icon">⚠️</span>
+        <div class="a-body">
+          <strong>NO SE HAN ACEPTADO — Jabón Bath &amp; Spa Coco 150g 4pz (OC 6BQEW2DB)</strong>
+          <span>12 unidades solicitadas, 0 aceptadas. Verificar en Vendor Central.</span>
+        </div>
+      </div>
+
+      <!-- Positivo -->
+      <div class="s5-alert blue">
+        <span class="a-icon">ℹ️</span>
+        <div class="a-body">
+          <strong>Avance de meta — 73.3% al cierre de Octubre</strong>
+          <span>Faltan $266,586 MXN para llegar a $1,000,000. Con el ritmo de S5 ($163K), Noviembre podría acercarse si se mantiene el abasto en las categorías top (Tocador y Detergentes).</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="s5-meta">
+    <span>Fuente: Historial_29.xlsx · Vendor Central MX</span>
+    <span>Generado: 4 Nov 2026</span>
+  </div>
+
+</div>
+</div>
+
 <!-- ══ GENERAL ══ -->
-<div id="p-general" class="sp on">
+<div id="p-general" class="sp">
   <div class="filter-bar" id="fb-gen">
   <div class="fb-inner">
     <div class="fb-group">
@@ -634,7 +858,8 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#F0F2F5;color:#222;paddi
 
 </div><!-- /content -->
 <nav class="nav-bot">
-  <button class="ntab on" onclick="go('general',this)">General</button>
+  <button class="ntab on" onclick="go('semanaS5',this)">📋 Semana S5</button>
+  <button class="ntab" onclick="go('general',this)">General</button>
   <button class="ntab" onclick="go('ventas',this)">Ventas</button>
   <button class="ntab" onclick="go('inventario',this)">Inventario</button>
   <button class="ntab" onclick="go('pronosticos',this)">Pronósticos</button>
