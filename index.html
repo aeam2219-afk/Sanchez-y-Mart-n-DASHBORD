@@ -121,8 +121,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#F0F2F5;color:#222;paddi
   <div class="last-upd">Jul 2026</div>
 </div>
 <nav class="nav-top">
-  <button class="ntab on" onclick="go('semanaS5',this)">📋 Semana S5</button>
-  <button class="ntab" onclick="go('general',this)">General</button>
+  <button class="ntab on" onclick="go('general',this)">General</button>
   <button class="ntab" onclick="go('ventas',this)">Ventas</button>
   <button class="ntab" onclick="go('inventario',this)">Inventario</button>
   <button class="ntab" onclick="go('pronosticos',this)">Pronósticos</button>
@@ -134,8 +133,8 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#F0F2F5;color:#222;paddi
 </nav>
 <div class="content">
 
-<!-- ══ SEMANA S5 ══ -->
-<div id="p-semanaS5" class="sp on">
+<!-- ══ GENERAL ══ (removed S5 tab) -->
+<div id="p-semanaS5-removed" style="display:none">
 <style>
 .s5-wrap{max-width:900px;margin:0 auto;padding:20px 16px 40px;}
 .s5-header{background:linear-gradient(135deg,#1e3a5f,#2563eb);color:#fff;border-radius:14px;padding:24px 28px;margin-bottom:24px;}
@@ -359,7 +358,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#F0F2F5;color:#222;paddi
 </div>
 
 <!-- ══ GENERAL ══ -->
-<div id="p-general" class="sp">
+<div id="p-general" class="sp on">
   <div class="filter-bar" id="fb-gen">
   <div class="fb-inner">
     <div class="fb-group">
@@ -643,7 +642,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#F0F2F5;color:#222;paddi
   <div class="sec">Detalle por campaña</div>
   <div class="card"><div class="ct"><span id="ads-cnt" style="color:#888;font-weight:400"></span></div>
     <div class="tbl-wrap"><table class="tbl">
-      <thead><tr><th class="l" style="min-width:170px">Campaña</th><th>Periodo</th><th>Imp.</th><th>Clics</th><th>Gasto MXN</th><th>Ventas MXN</th><th>Compras</th><th>T. Conv.</th><th>CPC</th><th>ACOS</th><th>ROAS</th></tr></thead>
+      <thead><tr><th class="l" style="min-width:170px">Campaña</th><th>Periodo</th><th>Imp.</th><th>Clics</th><th>Gasto MXN</th><th>Ventas MXN</th><th>Compras</th><th>T. Conv.</th><th>CPC</th><th>ROAS</th></tr></thead>
       <tbody id="ads-body"></tbody>
       <tfoot id="ads-foot"></tfoot>
     </table></div></div>
@@ -858,8 +857,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#F0F2F5;color:#222;paddi
 
 </div><!-- /content -->
 <nav class="nav-bot">
-  <button class="ntab on" onclick="go('semanaS5',this)">📋 Semana S5</button>
-  <button class="ntab" onclick="go('general',this)">General</button>
+  <button class="ntab on" onclick="go('general',this)">General</button>
   <button class="ntab" onclick="go('ventas',this)">Ventas</button>
   <button class="ntab" onclick="go('inventario',this)">Inventario</button>
   <button class="ntab" onclick="go('pronosticos',this)">Pronósticos</button>
@@ -1741,7 +1739,6 @@ function initAds(){
   document.getElementById('ads-k4').innerHTML=
     '<div class="kcard"><div class="ktt">Gasto = suma "Costo total" de las campañas del periodo\n= '+mxn(tg)+' MXN · '+camps.length+' campañas</div><div class="kl">Gasto Ads</div><div class="kv">'+mxn(tg)+' MXN</div><div class="kd">'+camps.length+' campaña(s)</div></div>'+
     '<div class="kcard"><div class="ktt">Ventas atribuidas en 14 días post-clic\nFuente: col Ventas del reporte Ads</div><div class="kl">Ventas atribuidas</div><div class="kv">'+mxn(tv)+' MXN</div><div class="kd">14 días atribución</div></div>'+
-    '<div class="kcard"><div class="ktt">ACOS = Gasto / Ventas × 100\n= '+mxn(tg)+' / '+mxn(tv)+' × 100 = '+acos+'%\n&lt;15% excelente · &lt;30% aceptable</div><div class="kl">ACOS</div><div class="kv '+(acos<15?'good':acos<30?'warn':'bad')+'">'+acos+'%</div><div class="kd">Gasto / Ventas × 100</div></div>'+
     '<div class="kcard"><div class="ktt">ROAS = Ventas / Gasto\n= '+mxn(tv)+' / '+mxn(tg)+' = '+roas.toFixed(1)+'x\n&gt;10x excelente · &gt;3x aceptable</div><div class="kl">ROAS</div><div class="kv '+(roas>10?'good':roas>3?'warn':'bad')+'">'+roas.toFixed(1)+'x</div><div class="kd">'+tcomp.toLocaleString()+' compras</div></div>';
   document.getElementById('ads-k3').innerHTML=
     '<div class="kcard"><div class="kl">Impresiones</div><div class="kv">'+ti.toLocaleString()+'</div></div>'+
@@ -1847,12 +1844,12 @@ function initAds(){
   if(document.getElementById('ads-acos-tbody')) document.getElementById('ads-acos-tbody').innerHTML=acosRows;
   document.getElementById('ads-body').innerHTML=camps.map(function(c){
     var n=c.tiene_nombre?c.nombre:(c.fi+'->'+c.ff);
-    var ac=c.acos<15?'good':c.acos<30?'warn':'bad',rc=c.roas>10?'good':c.roas>3?'warn':'bad';
+    var rc=c.roas>10?'good':c.roas>3?'warn':'bad';
     var cpc=c.clics>0?'$'+(c.gasto/c.clics).toFixed(2):'—';
-    return '<tr><td class="l" style="font-weight:600;font-size:10px"><div>'+n.substring(0,35)+'</div><div style="font-size:9px;margin-top:1px"><span style="background:'+(c.tipo==='Manual'?'#7928CA22':'#185FA522')+';color:'+(c.tipo==='Manual'?'#7928CA':'#185FA5')+';padding:1px 6px;border-radius:8px;font-weight:600">'+(c.tipo||'SP')+'</span></div></td><td><span class="pill" style="background:#eee;color:#555">'+c.periodo+'</span></td><td>'+c.imp.toLocaleString()+'</td><td>'+c.clics.toLocaleString()+'</td><td>$'+c.gasto.toLocaleString('es-MX',{minimumFractionDigits:2})+'</td><td>$'+c.ventas.toLocaleString('es-MX',{minimumFractionDigits:2})+'</td><td>'+c.comp.toLocaleString()+'</td><td class="'+(c.clics>0?Math.round(c.comp/c.clics*100)+'%':'—')+'" style="color:'+(c.clics>0&&c.comp/c.clics>0.1?'#1D9E75':c.clics>0&&c.comp/c.clics>0.05?'#F59E0B':'#888')+';font-weight:700">'+(c.clics>0?(Math.round(c.comp/c.clics*1000)/10).toFixed(1)+'%':'—')+'</td><td style="font-weight:600;color:#555">'+cpc+'</td><td class="'+ac+'">'+(c.acos>100?'>100%':c.acos+'%')+'</td><td class="'+rc+'">'+c.roas.toFixed(2)+'x</td></tr>';
+    return '<tr><td class="l" style="font-weight:600;font-size:10px"><div>'+n.substring(0,35)+'</div><div style="font-size:9px;margin-top:1px"><span style="background:'+(c.tipo==='Manual'?'#7928CA22':'#185FA522')+';color:'+(c.tipo==='Manual'?'#7928CA':'#185FA5')+';padding:1px 6px;border-radius:8px;font-weight:600">'+(c.tipo||'SP')+'</span></div></td><td><span class="pill" style="background:#eee;color:#555">'+c.periodo+'</span></td><td>'+c.imp.toLocaleString()+'</td><td>'+c.clics.toLocaleString()+'</td><td>$'+c.gasto.toLocaleString('es-MX',{minimumFractionDigits:2})+'</td><td>$'+c.ventas.toLocaleString('es-MX',{minimumFractionDigits:2})+'</td><td>'+c.comp.toLocaleString()+'</td><td class="'+(c.clics>0?Math.round(c.comp/c.clics*100)+'%':'—')+'" style="color:'+(c.clics>0&&c.comp/c.clics>0.1?'#1D9E75':c.clics>0&&c.comp/c.clics>0.05?'#F59E0B':'#888')+';font-weight:700">'+(c.clics>0?(Math.round(c.comp/c.clics*1000)/10).toFixed(1)+'%':'—')+'</td><td style="font-weight:600;color:#555">'+cpc+'</td><td class="'+rc+'">'+c.roas.toFixed(2)+'x</td></tr>';
   }).join('');
   var cpcTot=tc>0?'$'+(tg/tc).toFixed(2):'—';
-  document.getElementById('ads-foot').innerHTML='<tr class="tot"><td class="l">TOTAL</td><td>—</td><td>'+ti.toLocaleString()+'</td><td>'+tc.toLocaleString()+'</td><td>$'+tg.toLocaleString('es-MX',{minimumFractionDigits:2})+'</td><td>$'+tv.toLocaleString('es-MX',{minimumFractionDigits:2})+'</td><td>'+tcomp.toLocaleString()+'</td><td style="font-weight:700;color:'+(tc>0&&tcomp/tc>0.1?'#1D9E75':'#F59E0B')+'">'+(tc>0?(Math.round(tcomp/tc*1000)/10).toFixed(1)+'%':'—')+'</td><td style="font-weight:700;color:#555">'+cpcTot+'</td><td class="'+(acos<15?'good':acos<30?'warn':'bad')+'">'+acos+'%</td><td class="'+(roas>10?'good':roas>3?'warn':'bad')+'">'+roas.toFixed(1)+'x</td></tr>';
+  document.getElementById('ads-foot').innerHTML='<tr class="tot"><td class="l">TOTAL</td><td>—</td><td>'+ti.toLocaleString()+'</td><td>'+tc.toLocaleString()+'</td><td>$'+tg.toLocaleString('es-MX',{minimumFractionDigits:2})+'</td><td>$'+tv.toLocaleString('es-MX',{minimumFractionDigits:2})+'</td><td>'+tcomp.toLocaleString()+'</td><td style="font-weight:700;color:'+(tc>0&&tcomp/tc>0.1?'#1D9E75':'#F59E0B')+'">'+(tc>0?(Math.round(tcomp/tc*1000)/10).toFixed(1)+'%':'—')+'</td><td style="font-weight:700;color:#555">'+cpcTot+'</td><td class="'+(roas>10?'good':roas>3?'warn':'bad')+'">'+roas.toFixed(1)+'x</td></tr>';
   // Scatter
   var maxV=Math.max.apply(null,camps.map(function(c){return c.ventas;}).concat([1]));
   var scDs=camps.map(function(c){var col=c.roas>10?'#1D9E75':c.roas>3?'#F59E0B':'#E24B4A';var nm2=(c.tiene_nombre?c.nombre:(c.fi+'->'+c.ff)).substring(0,28);return{label:nm2,data:[{x:c.gasto,y:c.roas,r:6+Math.sqrt(c.ventas/maxV)*22}],backgroundColor:col+'AA',borderColor:col,borderWidth:1.5};});
