@@ -125,7 +125,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#F0F2F5;color:#222;paddi
   <button class="ntab" onclick="go('ventas',this)">Ventas</button>
   <button class="ntab" onclick="go('inventario',this)">Inventario</button>
   <button class="ntab" onclick="go('ads',this)">Ads</button>
-  <button class="ntab" onclick="go('ordenes',this)">Órdenes de Compra</button>
+
   <button class="ntab" onclick="go('devoluciones',this)">Devoluciones</button>
   <button class="ntab" onclick="go('datos',this)">Base de datos</button>
   <button class="ntab" onclick="go('glosario',this)">📖 Glosario</button>
@@ -804,59 +804,6 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#F0F2F5;color:#222;paddi
 </div>
 
 
-<div id="p-ordenes" class="sp">
-  <div class="filter-bar"><div class="fb-inner">
-    <div class="fb-group"><label>Estado</label>
-      <select id="oc-estado" onchange="iOC()">
-        <option value="all">Todos</option>
-        <option value="Confirmada">🟢 Confirmada</option>
-        <option value="Cerrada">⚪ Cerrada</option>
-        <option value="Cancelada">🔴 Cancelada (100% sin recibir)</option>
-      </select></div>
-    <div class="fb-group"><label>Mes</label>
-      <select id="oc-mes" onchange="iOC()">
-        <option value="all">Todos los meses</option>
-        <option value="Ene 2026">Ene 2026</option>
-        <option value="Feb 2026">Feb 2026</option>
-        <option value="Mar 2026">Mar 2026</option>
-        <option value="Abr 2026">Abr 2026</option>
-        <option value="May 2026">May 2026</option>
-        <option value="Jun 2026">Jun 2026</option>
-        <option value="Jul 2026">Jul 2026</option>
-        <option value="Ago 2026">Ago 2026</option>
-        <option value="Sep 2026">Sep 2026</option>
-      </select></div>
-    <button class="btn-limpiar" onclick="document.getElementById('oc-estado').value='all';document.getElementById('oc-mes').value='all';iOC()">x Limpiar</button>
-  </div></div>
-  <div class="k4" id="oc-kpis"></div>
-  <div class="sec">📦 Seguimiento en tránsito — OCs confirmadas activas</div>
-  <div class="card" style="padding:0">
-    <div id="oc-transit" style="padding:12px"></div>
-  </div>
-  <div class="sec">📋 Fichas de órdenes — Aceptadas y Recibidas</div>
-  <div class="card" style="padding:12px">
-    <div id="oc-fichas"></div>
-  </div>
-  <div class="g2">
-    <div class="card"><div class="ct">Uds solicitadas vs recibidas vs canceladas por mes</div>
-      <div style="position:relative;height:230px"><canvas id="oc-bar-mes"></canvas></div></div>
-    <div class="card"><div class="ct">Costo cancelado por mes (MXN)</div>
-      <div style="position:relative;height:230px"><canvas id="oc-bar-costo"></canvas></div></div>
-  </div>
-  <div class="card">
-    <div class="ct">Detalle de OCs <span id="oc-cnt" style="color:#888;font-weight:400;font-size:11px"></span></div>
-    <div class="tbl-wrap"><table class="tbl">
-      <thead><tr>
-        <th class="l">PO</th><th>Fecha</th><th>Estado</th><th>Prods</th>
-        <th>Solicitadas</th><th>Aceptadas</th><th>ASN Env.</th><th>Recibidas</th>
-        <th>Canceladas</th><th>Restantes</th><th>% Cancel.</th>
-        <th>Costo sol.</th><th>Costo cancel.</th><th>Destino</th>
-      </tr></thead>
-      <tbody id="oc-tbody"></tbody>
-      <tfoot id="oc-tfoot"></tfoot>
-    </table></div>
-  </div>
-</div>
 
 </div><!-- /content -->
 <nav class="nav-bot">
@@ -864,7 +811,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#F0F2F5;color:#222;paddi
   <button class="ntab" onclick="go('ventas',this)">Ventas</button>
   <button class="ntab" onclick="go('inventario',this)">Inventario</button>
   <button class="ntab" onclick="go('ads',this)">Ads</button>
-  <button class="ntab" onclick="go('ordenes',this)">Órdenes de Compra</button>
+
   <button class="ntab" onclick="go('devoluciones',this)">Devoluciones</button>
   <button class="ntab" onclick="go('datos',this)">Base de datos</button>
   <button class="ntab" onclick="go('glosario',this)">📖 Glosario</button>
@@ -904,7 +851,6 @@ function go(id,el){
     if(id==='ventas') iVen();
     if(id==='inventario') iInv();
     if(id==='ads') initAds();
-    if(id==='ordenes') iOC();
     if(id==='devoluciones') iDev();
     if(id==='datos'){dbRows=[...D.db_rows];dbRender();}
     ini[id]=true;
@@ -2354,126 +2300,6 @@ function renderAdsSeg(camps){
 }
 
 // -- ORDENES DE COMPRA --
-function iOC(){
-  kl(['oc-bar-mes','oc-bar-costo']);
-  renderOCTransit();
-  renderOCItems();
-  var estado=document.getElementById('oc-estado')?document.getElementById('oc-estado').value:'all';
-  var mes=document.getElementById('oc-mes')?document.getElementById('oc-mes').value:'all';
-  var pd=D.po_data;
-
-  function getEstadoReal(r){
-    if(r.estado==='Confirmada') return 'Confirmada';
-    if(r.uds_can>0&&r.uds_rec===0) return 'Cancelada';
-    return 'Cerrada';
-  }
-
-  var rows=pd.pos.filter(function(r){
-    var er=getEstadoReal(r);
-    var estOk=estado==='all'||(estado==='Cancelada'?er==='Cancelada':estado===r.estado);
-    return estOk&&(mes==='all'||r.mes===mes);
-  });
-
-  var tSol=rows.reduce(function(s,r){return s+r.uds_sol;},0);
-  var tAcep=rows.reduce(function(s,r){return s+(r.uds_acep||0);},0);
-  var tAsn=rows.reduce(function(s,r){return s+(r.uds_asn||0);},0);
-  var tRest=rows.reduce(function(s,r){return s+(r.uds_rest||0);},0);
-  var tRec=rows.reduce(function(s,r){return s+r.uds_rec;},0);
-  var tCan=rows.reduce(function(s,r){return s+r.uds_can;},0);
-  var tCSol=rows.reduce(function(s,r){return s+r.costo_sol;},0);
-  var tCRec=rows.reduce(function(s,r){return s+(r.costo_rec||0);},0);
-  var tCCan=rows.reduce(function(s,r){return s+r.costo_can;},0);
-  var pctCan=tSol>0?Math.round(tCan/tSol*1000)/10:0;
-  var pctRec=tSol>0?Math.round(tRec/tSol*1000)/10:0;
-  var nCanceladas=rows.filter(function(r){return getEstadoReal(r)==='Cancelada';}).length;
-  var nConfirmadas=rows.filter(function(r){return r.estado==='Confirmada';}).length;
-  var nCerradas=rows.filter(function(r){return getEstadoReal(r)==='Cerrada';}).length;
-
-  document.getElementById('oc-kpis').innerHTML=
-    '<div class="kcard"><div class="ktt">Total OCs | 🟢 Confirmadas: '+nConfirmadas+' | ⚪ Cerradas: '+nCerradas+' | 🔴 Canceladas: '+nCanceladas+'</div>'+
-      '<div class="kl">Total OCs</div><div class="kv">'+rows.length+'</div>'+
-      '<div class="kd">'+nCanceladas+' canceladas · '+nConfirmadas+' confirmadas</div></div>'+
-    '<div class="kcard"><div class="ktt">Flujo: Solicitadas = lo que pidio Amazon\nAceptadas = SyM confirmo\nASN = SyM ya envio\nRecibidas = Amazon recibio en CD</div>'+
-      '<div class="kl">Solicitadas / Recibidas</div>'+
-      '<div class="kv">'+tSol.toLocaleString()+' / '+tRec.toLocaleString()+'</div>'+
-      '<div class="kd">Aceptadas: '+tAcep.toLocaleString()+' · ASN: '+tAsn.toLocaleString()+'</div></div>'+
-    '<div class="kcard"><div class="ktt">Canceladas = Amazon no las recibio\nRestantes = pendientes de recibir</div>'+
-      '<div class="kl">Canceladas / Restantes</div>'+
-      '<div class="kv '+(pctCan>20?'bad':pctCan>10?'warn':'good')+'">'+tCan.toLocaleString()+' / '+tRest.toLocaleString()+'</div>'+
-      '<div class="kd">'+pctCan+'% cancelado</div></div>'+
-    '<div class="kcard"><div class="ktt">Costo cancelado = oportunidad perdida\nCosto pendiente = falta por recibir</div>'+
-      '<div class="kl">Costo cancelado</div><div class="kv '+(tCCan>500000?'bad':tCCan>100000?'warn':'good')+'">'+mxn(tCCan)+' MXN</div>'+
-      '<div class="kd">Pendiente: '+mxn(Math.max(0,tCSol-tCRec-tCCan))+' MXN</div></div>';
-
-  // Graficas por mes
-  var ultimoMes=D.periodos[D.periodos.length-1];
-  var meses=mes==='all'?pd.meses:[mes];
-  var idxs=mes==='all'?pd.meses.map(function(_,i){return i;}):[pd.meses.indexOf(mes)];
-
-  ch['oc-bar-mes']=new Chart(document.getElementById('oc-bar-mes'),{type:'bar',
-    data:{labels:meses,datasets:[
-      {label:'Solicitadas',data:idxs.map(function(i){return pd.por_mes.uds_sol[i]||0;}),backgroundColor:'#185FA533',borderColor:'#185FA5',borderWidth:1,borderRadius:3},
-      {label:'Aceptadas',data:idxs.map(function(i){return pd.por_mes.uds_acep[i]||0;}),backgroundColor:'#0EA5E999',borderRadius:3},
-      {label:'ASN Enviadas',data:idxs.map(function(i){return pd.por_mes.uds_asn[i]||0;}),backgroundColor:'#7928CA99',borderRadius:3},
-      {label:'Recibidas',data:idxs.map(function(i){return pd.por_mes.uds_rec[i]||0;}),backgroundColor:'#1D9E7599',borderRadius:3},
-      {label:'Canceladas',data:idxs.map(function(i){return pd.por_mes.uds_can[i]||0;}),backgroundColor:'#E24B4A99',borderRadius:3},
-      {label:'Restantes',data:idxs.map(function(i){return pd.por_mes.uds_rest[i]||0;}),backgroundColor:'#F59E0B99',borderRadius:3}
-    ]},
-    options:{...bo,scales:{x:{grid:{display:false},ticks:{font:{size:9},autoSkip:false}},
-      y:{grid:{color:gc},ticks:{font:{size:9},callback:function(v){return v>=1000?(v/1000).toFixed(0)+'K':v;}}}},
-      plugins:{legend:{display:true,labels:{font:{size:9},boxWidth:9}}}}});
-
-  ch['oc-bar-costo']=new Chart(document.getElementById('oc-bar-costo'),{type:'bar',
-    data:{labels:meses,datasets:[
-      {label:'Costo solicitado',data:idxs.map(function(i){return pd.por_mes.costo_sol[i]||0;}),backgroundColor:'#185FA555',borderRadius:3},
-      {label:'Costo recibido',data:idxs.map(function(i){return pd.por_mes.costo_rec[i]||0;}),backgroundColor:'#1D9E7599',borderRadius:3},
-      {label:'Costo cancelado',data:idxs.map(function(i){return pd.por_mes.costo_can[i]||0;}),backgroundColor:'#E24B4A99',borderRadius:3}
-    ]},
-    options:{...bo,scales:{x:{grid:{display:false},ticks:{font:{size:9},autoSkip:false}},
-      y:{grid:{color:gc},ticks:{font:{size:9},callback:function(v){return'$'+numK(v);}}}},
-      plugins:{legend:{display:true,labels:{font:{size:9},boxWidth:9}}}}});
-
-  // Tabla detalle
-  document.getElementById('oc-cnt').textContent=rows.length+' OCs ('+nCanceladas+' canceladas)';
-  document.getElementById('oc-tbody').innerHTML=rows.map(function(r){
-    var er=getEstadoReal(r);
-    var badgeBg=er==='Confirmada'?'#EAF3DE':er==='Cancelada'?'#FDECEA':'#f0f0f0';
-    var badgeColor=er==='Confirmada'?'#1D9E75':er==='Cancelada'?'#E24B4A':'#555';
-    var canCol=r.pct_can>50?'bad':r.pct_can>20?'warn':'';
-    var estadoColor=(r.pct_rec||0)>=100?'#1D9E75':(r.uds_rec||0)===0?'#F59E0B':'#185FA5';
-    var estadoLabel=(r.pct_rec||0)>=100?'✅ Aceptada':(r.uds_rec||0)===0?'⏳ Pend. de envio':'📦 En proceso';
-    return '<tr style="'+(er==='Cancelada'?'background:#fff8f8':'')+'">' +
-      '<td class="l" style="font-weight:700;font-size:10px;color:#185FA5">'+r.po+'</td>'+
-      '<td style="white-space:nowrap">'+r.fecha+'</td>'+
-      '<td><span class="pill" style="background:'+badgeBg+';color:'+badgeColor+';font-weight:700">'+
-        (er==='Cancelada'?'🔴 Cancelada':er==='Confirmada'?'🟢 Confirmada':'⚪ Cerrada')+'</span>'+
-        (r.estado==='Confirmada'?'<span class="pill" style="background:'+estadoColor+';color:#fff;font-weight:700;margin-left:4px">'+estadoLabel+'</span>':'')+'</td>'+
-      '<td>'+r.productos+'</td>'+
-      '<td>'+r.uds_sol.toLocaleString()+'</td>'+
-      '<td>'+((r.uds_acep||0).toLocaleString())+'</td>'+
-      '<td style="color:#7928CA;font-weight:600">'+((r.uds_asn||0).toLocaleString())+'</td>'+
-      '<td class="'+(r.uds_rec>0?'good':'')+'">'+r.uds_rec.toLocaleString()+'</td>'+
-      '<td class="'+(r.uds_can>0?canCol:'')+'">'+r.uds_can.toLocaleString()+'</td>'+
-      '<td class="'+(r.uds_rest>0?'warn':'')+'">'+((r.uds_rest||0).toLocaleString())+'</td>'+
-      '<td class="'+(r.pct_can>0?canCol:'')+'" style="font-weight:700">'+(r.pct_can>0?r.pct_can+'%':'—')+'</td>'+
-      '<td>'+mxn(r.costo_sol)+'</td>'+
-      '<td class="'+(r.costo_can>0?'bad':'')+'">'+( r.costo_can>0?mxn(r.costo_can):'—')+'</td>'+
-      '<td style="font-size:9px">'+(r.destino||'—')+'</td></tr>';
-  }).join('');
-
-  document.getElementById('oc-tfoot').innerHTML='<tr class="tot">'+
-    '<td class="l" colspan="4"><strong>TOTAL ('+rows.length+' OCs)</strong></td>'+
-    '<td><strong>'+tSol.toLocaleString()+'</strong></td>'+
-    '<td><strong>'+tAcep.toLocaleString()+'</strong></td>'+
-    '<td style="color:#7928CA;font-weight:700">'+tAsn.toLocaleString()+'</td>'+
-    '<td class="good"><strong>'+tRec.toLocaleString()+'</strong></td>'+
-    '<td class="'+(pctCan>20?'bad':pctCan>10?'warn':'good')+'"><strong>'+tCan.toLocaleString()+'</strong></td>'+
-    '<td class="'+(tRest>0?'warn':'')+'"><strong>'+tRest.toLocaleString()+'</strong></td>'+
-    '<td class="'+(pctCan>20?'bad':pctCan>10?'warn':'good')+'"><strong>'+pctCan+'%</strong></td>'+
-    '<td><strong>'+mxn(tCSol)+'</strong></td>'+
-    '<td class="'+(tCCan>0?'bad':'')+'"><strong>'+(tCCan>0?mxn(tCCan):'—')+'</strong></td>'+
-    '<td></td></tr>';
-}
 
 function renderOCTransit(){
   var el=document.getElementById('oc-transit');
