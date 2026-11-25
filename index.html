@@ -664,6 +664,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#F0F2F5;color:#222;paddi
             <th style="padding:8px 10px;text-align:right;color:#374151;font-weight:700">Dev. últ. 3m</th>
             <th style="padding:8px 10px;text-align:right;color:#374151;font-weight:700">% Dev.</th>
             <th style="padding:8px 10px;text-align:right;color:#374151;font-weight:700">Stock últ. mes</th>
+            <th style="padding:8px 10px;text-align:center;color:#374151;font-weight:700">OC activa</th>
             <th style="padding:8px 10px;text-align:center;color:#374151;font-weight:700">Señal</th>
           </tr>
         </thead>
@@ -1607,11 +1608,27 @@ function renderWorstAsins(){
     if(v3===0) signals.push({t:'⛔ Sin ventas',c:'#E24B4A'});
     if(signals.length===0) signals.push({t:'✓ Normal',c:'#9ca3af'});
 
+    // OC activa: busca en po_data POs con estado Confirmada o Sin confirmar que tengan este ASIN
+    var ocActiva=false;
+    var ocInfo=[];
+    var poList=D.po_data||[];
+    for(var poi=0;poi<poList.length;poi++){
+      var po=poList[poi];
+      if(po.estado==='Cerrada') continue;
+      var items=po.items||[];
+      for(var pii=0;pii<items.length;pii++){
+        if(items[pii].asin===a.asin){
+          ocActiva=true;
+          ocInfo.push({po:po.po,estado:po.estado,qty:items[pii].qty_solicitada,qty_aceptada:items[pii].qty_aceptada,qty_recibida:items[pii].qty_recibida,fecha:po.fecha});
+          break;
+        }
+      }
+    }
     scored.push({
       asin:a.asin,nombre:a.nombre,nombre_corto:a.nombre_corto,
       categoria:a.categoria||a.cat||'',
       v3:v3,tendPct:tendPct,d3:d3,devPct:devPct,uLast:uLast,sLast:sLast,
-      score:score,signals:signals
+      score:score,signals:signals,ocActiva:ocActiva,ocInfo:ocInfo
     });
   }
 
@@ -1650,6 +1667,11 @@ function renderWorstAsins(){
       '<td style="padding:7px 10px;text-align:right;color:#374151">'+r.d3+'</td>'+
       '<td style="padding:7px 10px;text-align:right;font-weight:'+devW+';color:'+devCol+'">'+devFmt+'</td>'+
       '<td style="padding:7px 10px;text-align:right;font-weight:'+stW+';color:'+stCol+'">'+r.sLast.toLocaleString('es-MX')+'</td>'+
+      '<td style="padding:7px 10px;text-align:center">'+
+      (r.ocActiva
+        ? '<button onclick="toggleOC(this)" style="background:#22c55e22;color:#16a34a;border:1px solid #22c55e55;padding:2px 8px;border-radius:4px;font-size:9px;font-weight:700;cursor:pointer;white-space:nowrap" data-oc=\''+encodeURIComponent(JSON.stringify(r.ocInfo))+'\'> OC activa ▾</button>'
+        : '<span style="color:#d1d5db;font-size:10px">—</span>'
+      )+'</td>'+
       '<td style="padding:7px 10px">'+sigHtml+'</td>'+
       '</tr>'
     );
@@ -1660,7 +1682,7 @@ function renderWorstAsins(){
   if(rows.length>0){
     tbody.innerHTML=rows.join('');
   } else {
-    tbody.innerHTML='<tr><td colspan="11" style="text-align:center;color:#aaa;padding:16px">Sin datos para este filtro</td></tr>';
+    tbody.innerHTML='<tr><td colspan="12" style="text-align:center;color:#aaa;padding:16px">Sin datos para este filtro</td></tr>';
   }
 }
 
@@ -2875,6 +2897,47 @@ function renderAdsVsMes(mesFs){
   });
 }
 
+
+function toggleOC(btn){
+  var existing=btn.parentNode.querySelector('.oc-drawer');
+  if(existing){existing.remove();btn.textContent=' OC activa ▾';return;}
+  var info=JSON.parse(decodeURIComponent(btn.dataset.oc||'[]'));
+  var rows=info.map(function(oi){
+    var estadoColor=oi.estado==='Confirmada'?'#16a34a':(oi.estado==='Sin confirmar'?'#F59E0B':'#9ca3af');
+    var pedidas=oi.qty||0;
+    var aceptadas=oi.qty_aceptada!==undefined?oi.qty_aceptada:'—';
+    var recibidas=oi.qty_recibida!==undefined?oi.qty_recibida:'—';
+    var acepColor=aceptadas===0?'#E24B4A':(aceptadas===pedidas?'#16a34a':'#F59E0B');
+    return '<tr style="border-top:1px solid #f0f0f0">'+
+      '<td style="padding:5px 8px;font-weight:700;font-family:monospace;font-size:10px;color:#374151">'+oi.po+'</td>'+
+      '<td style="padding:5px 8px;font-size:10px;color:'+estadoColor+';font-weight:600">'+oi.estado+'</td>'+
+      '<td style="padding:5px 8px;font-size:10px;color:#6b7280">'+oi.fecha+'</td>'+
+      '<td style="padding:5px 8px;font-size:10px;text-align:right;color:#374151;font-weight:600">'+pedidas+'</td>'+
+      '<td style="padding:5px 8px;font-size:10px;text-align:right;font-weight:700;color:'+acepColor+'">'+aceptadas+'</td>'+
+      '<td style="padding:5px 8px;font-size:10px;text-align:right;color:#374151">'+recibidas+'</td>'+
+      '</tr>';
+  }).join('');
+  var drawer=document.createElement('div');
+  drawer.className='oc-drawer';
+  drawer.style.cssText='position:absolute;z-index:999;background:#fff;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,0.12);padding:8px;min-width:420px;margin-top:4px;left:50%;transform:translateX(-50%)';
+  drawer.innerHTML='<div style="font-size:10px;font-weight:700;color:#374151;margin-bottom:6px;padding-bottom:4px;border-bottom:1px solid #f0f0f0">Órdenes de compra activas</div>'+
+    '<table style="width:100%;border-collapse:collapse"><thead><tr>'+
+    '<th style="padding:4px 8px;font-size:9px;color:#9ca3af;text-align:left;font-weight:600">PO</th>'+
+    '<th style="padding:4px 8px;font-size:9px;color:#9ca3af;text-align:left;font-weight:600">Estado</th>'+
+    '<th style="padding:4px 8px;font-size:9px;color:#9ca3af;text-align:left;font-weight:600">Fecha</th>'+
+    '<th style="padding:4px 8px;font-size:9px;color:#9ca3af;text-align:right;font-weight:600">Pedidas</th>'+
+    '<th style="padding:4px 8px;font-size:9px;color:#9ca3af;text-align:right;font-weight:600">Aceptadas</th>'+
+    '<th style="padding:4px 8px;font-size:9px;color:#9ca3af;text-align:right;font-weight:600">Recibidas</th>'+
+    '</tr></thead><tbody>'+rows+'</tbody></table>';
+  btn.textContent=' OC activa ▴';
+  btn.parentNode.style.position='relative';
+  btn.parentNode.appendChild(drawer);
+  setTimeout(function(){
+    document.addEventListener('click',function closeOC(e){
+      if(!drawer.contains(e.target)&&e.target!==btn){drawer.remove();btn.textContent=' OC activa ▾';document.removeEventListener('click',closeOC);}
+    });
+  },10);
+}
 </script>
 </body>
 </html>
