@@ -1094,18 +1094,14 @@ function renderGenKpis(){
       var cats2=f.cat==='all'?D.categorias:[f.cat];
       var totalMes,nota,metaRef;
       if(f.mes==='all'){
-        // Promedio mensual acumulado (10 meses)
-        var totalAcum=cats2.reduce(function(s,c){return s+getVentasCatForPeriod(c,null);},0);
-        totalMes=Math.round(totalAcum/10);
-        nota='Promedio mensual (Ene-Oct)';
-        metaRef=META;
+        return '';
       } else if(f.mes==='multi'){
         var selM2=f.mesVals.filter(function(v){return v!=='all';});
-        totalMes=cats2.reduce(function(s,c){return s+selM2.reduce(function(ss,m){return ss+getVentasCatForPeriod(c,m);},0);},0);
+        totalMes=cats2.reduce(function(s,c){return s+selM2.reduce(function(ss,m){return ss+getIngresosCatForPeriod(c,m);},0);},0);
         nota='Acumulado selección ('+selM2.length+' meses)';
         metaRef=META*selM2.length;
       } else {
-        totalMes=cats2.reduce(function(s,c){return s+getVentasCatForPeriod(c,mesSel);},0);
+        totalMes=cats2.reduce(function(s,c){return s+getIngresosCatForPeriod(c,mesSel);},0);
         nota=isSemFil?'Mes '+mesSel+' (semana selec.)':mesSel;
         metaRef=META;
       }
@@ -1114,7 +1110,7 @@ function renderGenKpis(){
       var color=pct>=100?'good':pct>=70?'warn':'bad';
       var barColor=pct>=100?'#1D9E75':pct>=70?'#FF9900':'#E24B4A';
       return '<div class="kcard" style="grid-column:span 2">'+
-        '<div class="ktt">Meta mensual fija: $1,000,000 MXN\nVentas '+nota+': '+mxn(totalMes)+'\nFalta: '+mxn(falta)+' ('+(100-pct)+'%)</div>'+
+        '<div class="ktt">Meta mensual fija: $1,000,000 MXN\nIngresos '+nota+': '+mxn(totalMes)+'\nFalta: '+mxn(falta)+' ('+(100-pct)+'%)</div>'+
         '<div class="kl">Meta mensual $1M</div>'+
         '<div style="display:flex;align-items:center;gap:8px;margin:4px 0">'+
           '<div style="flex:1;background:#ffffff22;border-radius:4px;height:10px;overflow:hidden">'+
